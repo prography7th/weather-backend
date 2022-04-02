@@ -16,6 +16,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@app/*": ["src/*"],
+      "@config/*": ["src/config/*"],
+      "@interceptors/*": ["src/common/interceptors/*"],
+      "@exceptions/*": ["src/common/exceptions/*"]
+    }
+  },
+  "include": ["src/**/*"]
 }
