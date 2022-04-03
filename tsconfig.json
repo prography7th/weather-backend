@@ -17,11 +17,13 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
     "paths": {
       "@app/*": ["src/*"],
       "@config/*": ["src/config/*"],
       "@interceptors/*": ["src/common/interceptors/*"],
-      "@exceptions/*": ["src/common/exceptions/*"]
+      "@exceptions/*": ["src/common/exceptions/*"],
+      "@lib/*": ["src/lib/*"]
     }
   },
   "include": ["src/**/*"]
