@@ -5,9 +5,9 @@ on:
     branches: [main]
 
 env:
-  DOCKER_IMAGE: ghcr.io/${{ github.actor }}/weather_backend
+  DOCKER_IMAGE: ghcr.io/${{ github.actor }}/weather
   VERSION: ${{ github.sha }}
-  NAME: weather_backend
+  NAME: weather
 
 jobs:
   build:
@@ -53,4 +53,4 @@ jobs:
       - name: Docker run
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          docker run -d -p 80:80 --name weather_backend -e DB_HOST=${{ secrets.DB_HOST }} -e DB_PORT=${{ secrets.DB_PORT }} -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e DB_DATABASE=${{ secrets.DB_DATABASE }} --restart always ${{ env.DOCKER_IMAGE }}:latest
+          docker run -d -p 80:80 --name weather -e DB_HOST=${{ secrets.DB_HOST }} -e DB_PORT=${{ secrets.DB_PORT }} -e DB_USERNAME=${{ secrets.DB_USERNAME }} -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} -e DB_DATABASE=${{ secrets.DB_DATABASE }} --restart always ${{ env.DOCKER_IMAGE }}:latest
