@@ -6,8 +6,6 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from '@exceptions/http-exception.filter';
 import { AppModule } from '@app/app.module';
 
-// const findedust = require('./lib/finedust/index');
-
 class Application {
   private PORT: string;
   private MODE: string;
@@ -99,6 +97,7 @@ async function init() {
   } catch (err) {
     app.errorLog(err);
   }
+
   app.startLog();
 }
 

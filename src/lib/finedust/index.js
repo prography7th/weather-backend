@@ -3,25 +3,7 @@ module.exports = async function finedustGenerator() {
   const END_POINT = process.env.DUST_END_POINT;
   const SERVICE_KEY = process.env.DUST_SERVICE_KEY;
   const axios = require('axios');
-  const sidoNaems = [
-    '서울',
-    '부산',
-    '대구',
-    '인천',
-    '광주',
-    '대전',
-    '울산',
-    '경기',
-    '강원',
-    '충북',
-    '충남',
-    '전북',
-    '전남',
-    '경북',
-    '경남',
-    '제주',
-    '세종',
-  ];
+  const sidoNaems = require('./regionBase');
 
   const results = sidoNaems.map(async (sidoName) => {
     let pm25Count = 0;
@@ -56,5 +38,5 @@ module.exports = async function finedustGenerator() {
     };
   });
 
-  console.log(await Promise.all(results));
+  return Promise.all(results);
 };
