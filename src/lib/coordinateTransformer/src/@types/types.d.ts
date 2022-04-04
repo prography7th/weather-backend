@@ -5,8 +5,6 @@ declare module 'coordinate-transformer' {
       y: string;
       getResult: () => Promise<AllInformation>;
       resetXYvalue: (x: number, y: number) => Promise<AllInformation>;
-      getResultWithTypeH: () => Promise<RegionInformation>;
-      getResultWithTypeB: () => Promise<RegionInformation>;
       convertRegionWithShortWord: (region_1depth_name: string) => string;
     }
 
