@@ -97,6 +97,7 @@ async function init() {
   } catch (err) {
     app.errorLog(err);
   }
+
   app.startLog();
 }
 

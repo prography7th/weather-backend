@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { validationSchema } from '@config/validationSchema';
+import { FinedustModule } from '@finedust/finedust.module';
 
 @Module({
   imports: [
@@ -9,6 +10,7 @@ import { validationSchema } from '@config/validationSchema';
       isGlobal: true,
       validationSchema,
     }),
+    FinedustModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
