@@ -12,7 +12,7 @@ export class FinedustHelper implements OnModuleInit, OnModuleDestroy {
     await this.cacheManager.reset();
   }
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
-    this.finedustGenerator = require('../lib/finedust/index');
+    this.finedustGenerator = require('../lib/finedust/src/index.js');
   }
 
   @Cron('0 0 * * *', { name: 'setFineDustInformation' })

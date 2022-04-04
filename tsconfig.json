@@ -24,7 +24,8 @@
       "@interceptors/*": ["src/common/interceptors/*"],
       "@exceptions/*": ["src/common/exceptions/*"],
       "@lib/*": ["src/lib/*"],
-      "@finedust/*": ["src/finedust/*"]
+      "@finedust/*": ["src/finedust/*"],
+      "@coordinateTransformer/*": ["src/coordinateTransformer/*"]
     }
   },
   "include": ["src/**/*"]
