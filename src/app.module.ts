@@ -12,6 +12,7 @@ import { ForecastModule } from './forecast/forecast.module';
       validationSchema,
     }),
     FinedustModule,
+    ForecastModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
@@ -22,7 +23,6 @@ import { ForecastModule } from './forecast/forecast.module';
       entities: [],
       synchronize: false,
     }),
-    ForecastModule,
   ],
 })
 export class AppModule {}

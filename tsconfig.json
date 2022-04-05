@@ -25,7 +25,8 @@
       "@exceptions/*": ["src/common/exceptions/*"],
       "@lib/*": ["src/lib/*"],
       "@finedust/*": ["src/finedust/*"],
-      "@forecast/*": ["src/forecast/*"]
+      "@forecast/*": ["src/forecast/*"],
+      "@coordinateTransformer/*": ["src/coordinateTransformer/*"]
     }
   },
   "include": ["src/**/*"]
