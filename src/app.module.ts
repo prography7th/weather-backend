@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { validationSchema } from '@config/validationSchema';
 import { FinedustModule } from '@finedust/finedust.module';
+import { ForecastModule } from './forecast/forecast.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FinedustModule } from '@finedust/finedust.module';
       entities: [],
       synchronize: false,
     }),
+    ForecastModule,
   ],
 })
 export class AppModule {}
