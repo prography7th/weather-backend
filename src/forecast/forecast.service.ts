@@ -17,7 +17,7 @@ export class ForecastService {
     function toWeatherData(day): WeatherData {
       const times = Object.keys(day).sort();
 
-      const timeline: Time[] = times.sort().map((time) => ({
+      const timeline: Time[] = times.map((time) => ({
         date: day[time][0].fcstDate,
         time: day[time][0].fcstTime,
         sky: day[time].find((item) => item.category === 'SKY').fcstValue,
