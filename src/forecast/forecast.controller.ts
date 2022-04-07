@@ -7,7 +7,7 @@ export class ForecastController {
   constructor(private forecastService: ForecastService) {}
 
   //TODO: 응답 데코레이터 작성
-  @ApiOperation({ summary: '단기예보 조회' })
+  @ApiOperation({ summary: '오늘 날씨 정보 조회' })
   @ApiQuery({
     name: 'nx',
     required: true,
@@ -21,7 +21,7 @@ export class ForecastController {
     description: '예보지점 Y 좌표',
   })
   @Get('today')
-  getTodayInfo(@Query('nx') nx: number, @Query('ny') ny: number) {
+  getTodayInfo(@Query('nx') nx: string, @Query('ny') ny: string) {
     return this.forecastService.getTodayInfo(nx, ny);
   }
 }
