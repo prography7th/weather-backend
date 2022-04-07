@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { FinedustHelper } from '@finedust/finedust.helper';
 import { IFinedust, IFinedustSummary } from '@finedust/finedust.interface';
+import regionBase from '../lib/finedust/src/regionBase';
 
 @Injectable()
 export class FinedustService {
-  regions = require('../lib/finedust/regionBase') as string[];
+  // regions = require('../lib/finedust/regionBase') as string[];
+  regions = regionBase as string[];
   constructor(private readonly fineDustHelper: FinedustHelper) {}
 
   public async getInformation(regionName: string): Promise<IFinedustSummary> {

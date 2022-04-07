@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { ForecastService } from './forecast.service';
+import { ForecastService } from '@forecast/forecast.service';
 
 @Controller('forecast')
 export class ForecastController {
@@ -20,8 +20,8 @@ export class ForecastController {
     type: Number,
     description: '예보지점 Y 좌표',
   })
-  @Get('short')
+  @Get('today')
   getTodayInfo(@Query('nx') nx: number, @Query('ny') ny: number) {
-    return this.forecastService.getShortInfo(nx, ny);
+    return this.forecastService.getTodayInfo(nx, ny);
   }
 }
