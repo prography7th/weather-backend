@@ -1,15 +1,22 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { ConfigService } from '@nestjs/config';
+
 import { Day, Report, ShortInfo, Time, Weather } from '@forecast/forecast.interface';
-import { FinedustService } from '@app/finedust/finedust.service';
-import { IFinedustSummary } from '@app/finedust/finedust.interface';
-import { dfs_xy_conv } from '@app/lib/gridCoordinateConverter/src';
+import { FinedustService } from '@finedust/finedust.service';
+import { IFinedustSummary } from '@finedust/finedust.interface';
+import { dfs_xy_conv } from '@lib/gridCoordinateConverter/src';
 
 @Injectable()
 export class ForecastService {
   private CoordinateTranstormer;
 
-  constructor(private httpService: HttpService, private finedustService: FinedustService) {
+  constructor(
+    private httpService: HttpService,
+    private finedustService: FinedustService,
+    private configService: ConfigService,
+  ) {
     this.CoordinateTranstormer = require('../lib/coordinateTransformer/src/index');
   }
 
@@ -127,7 +134,10 @@ export class ForecastService {
       const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
 
       // 날씨 데이터 요청
-      const { SHORT_END_POINT } = process.env;
+      const SHORT_END_POINT = this.configService.get('SHORT_END_POINT');
+      const SHORT_SERVICE_KEY = this.configService.get('SHORT_SERVICE_KEY');
+      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
+      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
       const data = await this.requestShort(SHORT_END_POINT, baseDate, baseTime, x, y);
 
       // 날짜 & 시간별 그룹화
@@ -156,7 +166,6 @@ export class ForecastService {
       }
 
       weather['today'].report.maxPop = { value: maxPop, time };
-
       // 미세먼지 정보 추가
       weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 

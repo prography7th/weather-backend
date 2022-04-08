@@ -41,14 +41,6 @@ module.exports = class CoordinateTranstormer {
   async getResult() {
     return this.#result == null ? await this.#initResult() : this.#result;
   }
-  async getResultWithTypeH() {
-    if (this.#initResult == null) await this.#initResult();
-    return this.#result.documents[1];
-  }
-  async getResultWithTypeB() {
-    if (this.#initResult == null) await this.#initResult();
-    return this.#result.documents[0];
-  }
 
   async resetXYvalue(x, y) {
     this.x = x;

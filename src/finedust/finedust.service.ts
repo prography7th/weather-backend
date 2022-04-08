@@ -4,7 +4,7 @@ import { IFinedust, IFinedustSummary } from '@finedust/finedust.interface';
 
 @Injectable()
 export class FinedustService {
-  regions = require('../lib/finedust/regionBase') as string[];
+  regions = require('../lib/finedust/src/regionBase') as string[];
   constructor(private readonly fineDustHelper: FinedustHelper) {}
 
   public async getInformation(regionName: string): Promise<IFinedustSummary> {
