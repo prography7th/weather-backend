@@ -3,6 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Day, Report, Time } from '@forecast/forecast.interface';
 import { FinedustService } from '@app/finedust/finedust.service';
 import { IFinedustSummary } from '@app/finedust/finedust.interface';
+import { dfs_xy_conv } from '@app/lib/gridCoordinateConverter/src';
 
 @Injectable()
 export class ForecastService {
@@ -22,7 +23,7 @@ export class ForecastService {
     return result;
   }
 
-  async getTodayInfo(nx: string, ny: string): Promise<any> {
+  async getTodayInfo(lat: string, lon: string): Promise<any> {
     function groupBy(data, key) {
       return data.reduce((acc, cur) => {
         (acc[cur[key]] = acc[cur[key]] || []).push(cur);
@@ -54,10 +55,11 @@ export class ForecastService {
       return { report, timeline };
     }
 
-    if (!nx || !ny) throw new BadRequestException();
-
     try {
-      const { SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
+      if (!lat || !lon) throw new BadRequestException();
+
+      // 기상청 XY좌표로 변환
+      const { x, y } = dfs_xy_conv('toXY', lat, lon);
 
       // baseDate, baseTime 구하기
       const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
@@ -68,9 +70,9 @@ export class ForecastService {
       const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
       const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
 
-      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${parseInt(
-        nx,
-      )}&ny=${parseInt(ny)}`;
+      // 날씨 데이터 요청
+      const { SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
+      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
       const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
 
       // 날짜 & 시간별 그룹화
@@ -99,13 +101,11 @@ export class ForecastService {
       weather['today'].report.maxPop = { value: maxPop, time };
 
       // 미세먼지 정보 추가
-      // weather['today'].report.fineDust = await this.getFineDustInfo(nx, ny);
-      weather['today'].report.fineDust = await this.getFineDustInfo('128.8875970893', '35.88795706523');
+      weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
       return weather;
     } catch (err) {
       if (err.statusCode == 400) throw new BadRequestException();
-      console.error(err);
       throw new Error(err);
     }
   }

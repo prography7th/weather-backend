@@ -9,19 +9,19 @@ export class ForecastController {
   //TODO: 응답 데코레이터 작성
   @ApiOperation({ summary: '오늘 날씨 정보 조회' })
   @ApiQuery({
-    name: 'nx',
+    name: 'lat',
     required: true,
     type: Number,
-    description: '예보지점 X 좌표',
+    description: '예보지점 위도',
   })
   @ApiQuery({
-    name: 'ny',
+    name: 'lon',
     required: true,
     type: Number,
-    description: '예보지점 Y 좌표',
+    description: '예보지점 경도',
   })
   @Get('today')
-  getTodayInfo(@Query('nx') nx: string, @Query('ny') ny: string) {
-    return this.forecastService.getTodayInfo(nx, ny);
+  getTodayInfo(@Query('lat') lat: string, @Query('lon') lon: string) {
+    return this.forecastService.getTodayInfo(lat, lon);
   }
 }
