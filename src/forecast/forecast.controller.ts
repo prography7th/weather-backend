@@ -8,6 +8,7 @@ export class ForecastController {
   constructor(private forecastService: ForecastService, private middleForecast: MiddleForecastService) {}
 
   //TODO: 응답 데코레이터 작성
+  @ApiOperation({ summary: '지금 날씨 정보 조회' })
   @ApiQuery({
     name: 'lat',
     required: true,
@@ -44,7 +45,7 @@ export class ForecastController {
     return this.forecastService.getTodayInfo(lat, lon);
   }
 
-  @ApiOperation({ summary: '오늘 날씨 정보 조회' })
+  @ApiOperation({ summary: '주간 날씨 정보 조회' })
   @ApiQuery({
     name: 'lat',
     required: true,
