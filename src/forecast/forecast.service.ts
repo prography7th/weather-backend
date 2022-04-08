@@ -105,7 +105,7 @@ export class ForecastService {
 
       weather['today'].report.maxPop = { value: maxPop, time };
       // 미세먼지 정보 추가
-      // weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
+      weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
       return weather;
     } catch (err) {
