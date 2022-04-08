@@ -1,27 +1,27 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { ForecastService } from './forecast.service';
+import { ForecastService } from '@forecast/forecast.service';
 
 @Controller('forecast')
 export class ForecastController {
   constructor(private forecastService: ForecastService) {}
 
   //TODO: 응답 데코레이터 작성
-  @ApiOperation({ summary: '단기예보 조회' })
+  @ApiOperation({ summary: '오늘 날씨 정보 조회' })
   @ApiQuery({
-    name: 'nx',
+    name: 'lat',
     required: true,
     type: Number,
-    description: '예보지점 X 좌표',
+    description: '예보지점 위도',
   })
   @ApiQuery({
-    name: 'ny',
+    name: 'lon',
     required: true,
     type: Number,
-    description: '예보지점 Y 좌표',
+    description: '예보지점 경도',
   })
-  @Get('short')
-  getTodayInfo(@Query('nx') nx: number, @Query('ny') ny: number) {
-    return this.forecastService.getShortInfo(nx, ny);
+  @Get('today')
+  getTodayInfo(@Query('lat') lat: string, @Query('lon') lon: string) {
+    return this.forecastService.getTodayInfo(lat, lon);
   }
 }

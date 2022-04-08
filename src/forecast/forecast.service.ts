@@ -1,12 +1,29 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { Report, Time, WeatherData } from './forecast.interface';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Day, Report, Time } from '@forecast/forecast.interface';
+import { FinedustService } from '@app/finedust/finedust.service';
+import { IFinedustSummary } from '@app/finedust/finedust.interface';
+import { dfs_xy_conv } from '@app/lib/gridCoordinateConverter/src';
 
 @Injectable()
 export class ForecastService {
-  constructor(private httpService: HttpService) {}
+  private CoordinateTranstormer;
 
-  async getShortInfo(nx, ny): Promise<any> {
+  constructor(private httpService: HttpService, private finedustService: FinedustService) {
+    this.CoordinateTranstormer = require('../lib/coordinateTransformer/src/index');
+  }
+
+  private async getFineDustInfo(x: string, y: string): Promise<IFinedustSummary> {
+    const converter = await new this.CoordinateTranstormer(x, y);
+    // const region = await converter.getResultWithTypeH();
+    const region = await converter.getResult();
+    const regionName = converter.convertRegionWithShortWord(region['documents'][0].region_1depth_name);
+    const result = await this.finedustService.getInformation(regionName);
+
+    return result;
+  }
+
+  async getTodayInfo(lat: string, lon: string): Promise<any> {
     function groupBy(data, key) {
       return data.reduce((acc, cur) => {
         (acc[cur[key]] = acc[cur[key]] || []).push(cur);
@@ -14,9 +31,8 @@ export class ForecastService {
       }, {});
     }
 
-    function toWeatherData(day): WeatherData {
+    function toWeatherData(day): Day {
       const times = Object.keys(day).sort();
-
       const timeline: Time[] = times.map((time) => ({
         date: day[time][0].fcstDate,
         time: day[time][0].fcstTime,
@@ -31,7 +47,6 @@ export class ForecastService {
       const minTmpObj = times
         .map((time) => day[time].find((item) => item.category === 'TMN'))
         .filter((item) => !!item)[0];
-
       const report: Report = {
         maxTmp: maxTmpObj ? +maxTmpObj.fcstValue : null,
         minTmp: minTmpObj ? +minTmpObj.fcstValue : null,
@@ -40,60 +55,58 @@ export class ForecastService {
       return { report, timeline };
     }
 
-    const { SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
+    try {
+      if (!lat || !lon) throw new BadRequestException();
 
-    // baseDate, baseTime 구하기
-    const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
-    const nowTime = now[1].split(':');
-    const nowTimeHour: number = parseInt(nowTime[0]);
+      // 기상청 XY좌표로 변환
+      const { x, y } = dfs_xy_conv('toXY', lat, lon);
 
-    let baseDate = now[0].split('/').reverse().join('');
-    let baseTime = '';
+      // baseDate, baseTime 구하기
+      const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
+      const hour = parseInt(now[1].split(':')[0]);
+      const [year, month, day] = now[0].split('/').reverse();
+      const TODAY = `${year}${month}${day}`;
+      const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+      const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
+      const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
 
-    if (2 < nowTimeHour && nowTimeHour <= 5) {
-      baseTime = '0200';
-    } else if (5 < nowTimeHour && nowTimeHour <= 8) {
-      baseTime = '0500';
-    } else if (8 < nowTimeHour && nowTimeHour <= 11) {
-      baseTime = '0800';
-    } else if (11 < nowTimeHour && nowTimeHour <= 14) {
-      baseTime = '1100';
-    } else if (14 < nowTimeHour && nowTimeHour <= 17) {
-      baseTime = '1400';
-    } else if (17 < nowTimeHour && nowTimeHour <= 20) {
-      baseTime = '1700';
-    } else if (20 < nowTimeHour && nowTimeHour <= 23) {
-      baseTime = '2000';
-    } else {
-      baseDate = new Date(
-        parseInt(baseDate.slice(0, 4)),
-        parseInt(baseDate.slice(5, 6)) - 1,
-        parseInt(baseDate.slice(7, 8)) - 1,
-      )
-        .toLocaleString('en-GB', { hour12: false })
-        .split(', ')[0]
-        .split('/')
-        .reverse()
-        .join('');
-      baseTime = '2300';
+      // 날씨 데이터 요청
+      const { SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
+      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
+      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
+
+      // 날짜 & 시간별 그룹화
+      const groupedByTimeAfterDate = Object.values(groupBy(items, 'fcstDate')).map((day) => groupBy(day, 'fcstTime'));
+
+      // 데이터 포맷팅
+      const weatherData = groupedByTimeAfterDate.slice(0, 3).map((day) => toWeatherData(day));
+      const weather = weatherData.reduce((acc, cur, idx) => {
+        acc[['today', 'tomorrow', 'afterTomorrow'][idx]] = cur;
+        return acc;
+      }, {});
+
+      // 최대 강수확률 정보 추가
+      const todayTimeline = weather['today'].timeline;
+      let maxPop = 0;
+      let time = 'all';
+
+      for (let i = 0; i < todayTimeline.length; i++) {
+        const curPop = todayTimeline[i].pop;
+        if (curPop > maxPop) {
+          maxPop = curPop;
+          time = todayTimeline[i].time;
+        }
+      }
+
+      weather['today'].report.maxPop = { value: maxPop, time };
+
+      // 미세먼지 정보 추가
+      weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
+
+      return weather;
+    } catch (err) {
+      if (err.statusCode == 400) throw new BadRequestException();
+      throw new Error(err);
     }
-
-    // 단기예보 요청
-    const requestURL = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`;
-    const { item: items } = (await this.httpService.get(requestURL).toPromise()).data.response.body.items;
-
-    console.log(requestURL);
-
-    // 날짜 & 시간별 그룹화
-    const groupedByTimeAfterDate = Object.values(groupBy(items, 'fcstDate')).map((day) => groupBy(day, 'fcstTime'));
-
-    // 데이터 포맷팅
-    const weatherData = groupedByTimeAfterDate.slice(0, 3).map((day) => toWeatherData(day));
-    const result = weatherData.reduce((acc, cur, idx) => {
-      acc[['today', 'tomorrow', 'afterTomorrow'][idx]] = cur;
-      return acc;
-    }, {});
-
-    return result;
   }
 }

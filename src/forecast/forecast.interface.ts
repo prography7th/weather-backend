@@ -1,6 +1,13 @@
+import { IFinedustSummary } from '@app/finedust/finedust.interface';
+
 export interface Report {
   maxTmp?: number;
   minTmp?: number;
+  maxPop?: {
+    value: number;
+    time: string;
+  };
+  fineDust?: IFinedustSummary;
 }
 
 export interface Time {
@@ -11,7 +18,7 @@ export interface Time {
   pop: number;
 }
 
-export interface WeatherData {
+export interface Day {
   report: Report;
   timeline: Time[];
 }
