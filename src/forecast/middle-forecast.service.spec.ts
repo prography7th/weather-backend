@@ -1,16 +1,20 @@
-import { HttpModule, HttpService } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { MiddleForecastService } from './middle-forecast.service';
+import { MiddleForecastService } from '@forecast/middle-forecast.service';
+import { FinedustModule } from '@finedust/finedust.module';
+import { ForecastService } from '@forecast/forecast.service';
+import { ForecastModule } from '@forecast/forecast.module';
+import { HttpModule } from '@nestjs/axios';
 
 describe('middle-forecast', () => {
   let middleForecastService: MiddleForecastService;
   let sampleRegionCode: string[];
   let sampleDate: string;
   beforeEach(async () => {
+    jest.setTimeout(10000);
     const module = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot()],
-      providers: [MiddleForecastService],
+      imports: [ConfigModule.forRoot(), ForecastModule, FinedustModule, HttpModule],
+      providers: [MiddleForecastService, ForecastService],
     }).compile();
 
     middleForecastService = module.get<MiddleForecastService>(MiddleForecastService);
