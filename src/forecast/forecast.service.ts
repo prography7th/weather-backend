@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Day, Report, Time } from '@forecast/forecast.interface';
+import { Day, Report, ShortInfo, Time, Weather } from '@forecast/forecast.interface';
 import { FinedustService } from '@app/finedust/finedust.service';
 import { IFinedustSummary } from '@app/finedust/finedust.interface';
 import { dfs_xy_conv } from '@app/lib/gridCoordinateConverter/src';
@@ -13,14 +13,31 @@ export class ForecastService {
     this.CoordinateTranstormer = require('../lib/coordinateTransformer/src/index');
   }
 
-  async getNowInfo(lat: string, lon: string): Promise<any> {
-    function groupBy(data, key) {
-      return data.reduce((acc, cur) => {
-        (acc[cur[key]] = acc[cur[key]] || []).push(cur);
-        return acc;
-      }, {});
-    }
+  private groupBy(data: any[], key: string): { [key: string]: any[] } {
+    return data.reduce((acc, cur) => {
+      (acc[cur[key]] = acc[cur[key]] || []).push(cur);
+      return acc;
+    }, {});
+  }
 
+  private async requestShort(
+    endPoint: string,
+    baseDate: string,
+    baseTime: string,
+    nx: number,
+    ny: number,
+  ): Promise<ShortInfo[]> {
+    const { SHORT_SERVICE_KEY } = process.env;
+    return (
+      await this.httpService
+        .get(
+          `${endPoint}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`,
+        )
+        .toPromise()
+    ).data.response.body.items.item;
+  }
+
+  async getNowInfo(lat: string, lon: string): Promise<any> {
     try {
       if (!lat || !lon) throw new BadRequestException();
 
@@ -36,13 +53,12 @@ export class ForecastService {
       const baseDate = 1 < hour && hour < 24 ? TODAY : YESTERDAY;
       const baseTime = 1 < hour && hour < 24 ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
 
-      // 날씨 데이터 요청
-      const { VERY_SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
-      const requestUrl = `${VERY_SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
-      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
+      // 데이터 요청
+      const { VERY_SHORT_END_POINT } = process.env;
+      const data = await this.requestShort(VERY_SHORT_END_POINT, baseDate, baseTime, x, y);
 
-      // 날짜 & 시간별 그룹화
-      const groupedByTime: any[] = Object.values(groupBy(items, 'fcstTime'));
+      // 시간별 그룹화
+      const groupedByTime = Object.values(this.groupBy(data, 'fcstTime'));
 
       // 데이터 포맷팅
       const weather = groupedByTime[0].reduce(
@@ -62,8 +78,7 @@ export class ForecastService {
   }
 
   private async getFineDustInfo(x: string, y: string): Promise<IFinedustSummary> {
-    const converter = await new this.CoordinateTranstormer(x, y);
-    // const region = await converter.getResultWithTypeH();
+    const converter = new this.CoordinateTranstormer(x, y);
     const region = await converter.getResult();
     const regionName = converter.convertRegionWithShortWord(region['documents'][0].region_1depth_name);
     const result = await this.finedustService.getInformation(regionName);
@@ -71,14 +86,7 @@ export class ForecastService {
     return result;
   }
 
-  async getTodayInfo(lat: string, lon: string): Promise<any> {
-    function groupBy(data, key) {
-      return data.reduce((acc, cur) => {
-        (acc[cur[key]] = acc[cur[key]] || []).push(cur);
-        return acc;
-      }, {});
-    }
-
+  async getTodayInfo(lat: string, lon: string): Promise<Weather> {
     function toWeatherData(day): Day {
       const times = Object.keys(day).sort();
       const timeline: Time[] = times.map((time) => ({
@@ -119,12 +127,13 @@ export class ForecastService {
       const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
 
       // 날씨 데이터 요청
-      const { SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
-      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
-      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
+      const { SHORT_END_POINT } = process.env;
+      const data = await this.requestShort(SHORT_END_POINT, baseDate, baseTime, x, y);
 
       // 날짜 & 시간별 그룹화
-      const groupedByTimeAfterDate = Object.values(groupBy(items, 'fcstDate')).map((day) => groupBy(day, 'fcstTime'));
+      const groupedByTimeAfterDate = Object.values(this.groupBy(data, 'fcstDate')).map((day) =>
+        this.groupBy(day, 'fcstTime'),
+      );
 
       // 데이터 포맷팅
       const weatherData = groupedByTimeAfterDate.slice(0, 3).map((day) => toWeatherData(day));
