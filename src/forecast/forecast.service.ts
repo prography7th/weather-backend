@@ -13,6 +13,54 @@ export class ForecastService {
     this.CoordinateTranstormer = require('../lib/coordinateTransformer/src/index');
   }
 
+  async getNowInfo(lat: string, lon: string): Promise<any> {
+    function groupBy(data, key) {
+      return data.reduce((acc, cur) => {
+        (acc[cur[key]] = acc[cur[key]] || []).push(cur);
+        return acc;
+      }, {});
+    }
+
+    try {
+      if (!lat || !lon) throw new BadRequestException();
+
+      // 기상청 XY좌표로 변환
+      const { x, y } = dfs_xy_conv('toXY', lat, lon);
+
+      // baseDate, baseTime 구하기
+      const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
+      const hour = parseInt(now[1].split(':')[0]);
+      const [year, month, day] = now[0].split('/').reverse();
+      const TODAY = `${year}${month}${day}`;
+      const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+      const baseDate = 1 < hour && hour < 24 ? TODAY : YESTERDAY;
+      const baseTime = 1 < hour && hour < 24 ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
+
+      // 날씨 데이터 요청
+      const { VERY_SHORT_END_POINT, SHORT_SERVICE_KEY } = process.env;
+      const requestUrl = `${VERY_SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
+      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
+
+      // 날짜 & 시간별 그룹화
+      const groupedByTime: any[] = Object.values(groupBy(items, 'fcstTime'));
+
+      // 데이터 포맷팅
+      const weather = groupedByTime[0].reduce(
+        (acc, cur) => {
+          if (cur['category'] === 'SKY') acc['sky'] = cur['fcstValue'];
+          if (cur['category'] === 'T1H') acc['tmp'] = cur['fcstValue'];
+          return acc;
+        },
+        { time: groupedByTime[0][0]['fcstTime'] },
+      );
+
+      return weather;
+    } catch (err) {
+      if (err.statusCode == 400) throw new BadRequestException();
+      throw new Error(err);
+    }
+  }
+
   private async getFineDustInfo(x: string, y: string): Promise<IFinedustSummary> {
     const converter = await new this.CoordinateTranstormer(x, y);
     // const region = await converter.getResultWithTypeH();
