@@ -34,7 +34,8 @@ export class ForecastService {
     nx: number,
     ny: number,
   ): Promise<ShortInfo[]> {
-    const { SHORT_SERVICE_KEY } = process.env;
+    const SHORT_SERVICE_KEY = this.configService.get('SHORT_SERVICE_KEY');
+
     return (
       await this.httpService
         .get(
@@ -61,7 +62,7 @@ export class ForecastService {
       const baseTime = 1 < hour && hour < 24 ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
 
       // 데이터 요청
-      const { VERY_SHORT_END_POINT } = process.env;
+      const VERY_SHORT_END_POINT = this.configService.get('VERY_SHORT_END_POINT');
       const data = await this.requestShort(VERY_SHORT_END_POINT, baseDate, baseTime, x, y);
 
       // 시간별 그룹화
@@ -93,7 +94,7 @@ export class ForecastService {
     return result;
   }
 
-  async getTodayInfo(lat: string, lon: string): Promise<Weather> {
+  async getTodayInfo(lat: string, lon: string, baseDate: string, baseTime: string): Promise<Weather> {
     function toWeatherData(day): Day {
       const times = Object.keys(day).sort();
       const timeline: Time[] = times.map((time) => ({
@@ -124,20 +125,8 @@ export class ForecastService {
       // 기상청 XY좌표로 변환
       const { x, y } = dfs_xy_conv('toXY', lat, lon);
 
-      // baseDate, baseTime 구하기
-      const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
-      const hour = parseInt(now[1].split(':')[0]);
-      const [year, month, day] = now[0].split('/').reverse();
-      const TODAY = `${year}${month}${day}`;
-      const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
-      const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
-      const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
-
       // 날씨 데이터 요청
       const SHORT_END_POINT = this.configService.get('SHORT_END_POINT');
-      const SHORT_SERVICE_KEY = this.configService.get('SHORT_SERVICE_KEY');
-      const requestUrl = `${SHORT_END_POINT}?serviceKey=${SHORT_SERVICE_KEY}&pageNo=1&numOfRows=1000&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${x}&ny=${y}`;
-      const { item: items } = (await this.httpService.get(requestUrl).toPromise()).data.response.body.items;
       const data = await this.requestShort(SHORT_END_POINT, baseDate, baseTime, x, y);
 
       // 날짜 & 시간별 그룹화
