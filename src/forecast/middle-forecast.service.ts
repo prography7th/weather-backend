@@ -73,7 +73,14 @@ export class MiddleForecastService {
       });
     }
 
-    let weatherInformation = await this.forecastService.getTodayInfo(String(y), String(x));
+    const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
+    const hour = parseInt(now[1].split(':')[0]);
+    const TODAY = `${year}${month}${day}`;
+    const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+    const baseDate = 0 < hour && hour < 6 ? YESTERDAY : TODAY;
+    const baseTime = 0 < hour && hour < 6 ? '2300' : '0200';
+
+    let weatherInformation = await this.forecastService.getTodayInfo(String(y), String(x), baseDate, baseTime);
     let todayAmPop: any = [];
     let todayPmPop: any = [];
     let tomorrowAmPop: any = [];
@@ -142,11 +149,11 @@ export class MiddleForecastService {
       tmpMax: weatherInformation.today.report.maxTmp,
       am: {
         precipitation: todayAmPop,
-        weather: todayAmPop >= 80 ? '흐리고 비' : todayAmWeather,
+        weather: todayAmPop >= 70 ? '흐리고 비' : todayAmWeather,
       },
       pm: {
         precipitation: todayPmPop,
-        weather: todayPmPop >= 80 ? '흐리고 비' : todayPmWeather,
+        weather: todayPmPop >= 70 ? '흐리고 비' : todayPmWeather,
       },
     };
 
@@ -156,11 +163,11 @@ export class MiddleForecastService {
       tmpMax: weatherInformation.tomorrow.report.maxTmp,
       am: {
         precipitation: tomorrowAmPop,
-        weather: tomorrowAmPop >= 80 ? '흐리고 비' : tomorrowAmWeather,
+        weather: tomorrowAmPop >= 70 ? '흐리고 비' : tomorrowAmWeather,
       },
       pm: {
         precipitation: tomorrowAmPop,
-        weather: tomorrowPmPop >= 80 ? '흐리고 비' : tomorrowPmWeather,
+        weather: tomorrowPmPop >= 70 ? '흐리고 비' : tomorrowPmWeather,
       },
     };
 
@@ -170,11 +177,11 @@ export class MiddleForecastService {
       tmpMax: weatherInformation.afterTomorrow.report.maxTmp,
       am: {
         precipitation: afterTomorrowAmPop,
-        weather: afterTomorrowAmPop >= 80 ? '흐리고 비' : afterTomorrowAmWeather,
+        weather: afterTomorrowAmPop >= 70 ? '흐리고 비' : afterTomorrowAmWeather,
       },
       pm: {
         precipitation: afterTomorrowPmPop,
-        weather: afterTomorrowPmPop >= 80 ? '흐리고 비' : afterTomorrowPmWeather,
+        weather: afterTomorrowPmPop >= 70 ? '흐리고 비' : afterTomorrowPmWeather,
       },
     };
 
