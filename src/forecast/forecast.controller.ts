@@ -1,8 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ForecastService } from '@forecast/forecast.service';
 import { MiddleForecastService } from '@forecast/middle-forecast.service';
 
+@ApiTags('Weather')
 @Controller('forecast')
 export class ForecastController {
   constructor(private forecastService: ForecastService, private middleForecast: MiddleForecastService) {}
