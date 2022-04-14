@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from '@exceptions/http-exception.filter';
 import { AppModule } from '@app/app.module';
+import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 
 class Application {
   private PORT: string;
@@ -69,6 +70,7 @@ class Application {
       }),
     );
     this.server.useGlobalFilters(new HttpExceptionFilter());
+    this.server.useGlobalInterceptors(new SuccessInterceptor());
   }
 
   async bootstrap() {
