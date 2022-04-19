@@ -6,6 +6,7 @@ import { FinedustModule } from '@finedust/finedust.module';
 import { ForecastModule } from '@forecast/forecast.module';
 import { UsersModule } from './users/users.module';
 import { UserEntity } from './users/entity/user.entity';
+import { AlarmTimeEntity } from './users/entity/alarmTime.entity';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { UserEntity } from './users/entity/user.entity';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [UserEntity],
+      entities: [UserEntity, AlarmTimeEntity],
       synchronize: JSON.parse(process.env.DB_SYNC),
     }),
     UsersModule,

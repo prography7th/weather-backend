@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsUUID } from 'class-validator';
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { IsString, IsUUID } from 'class-validator';
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { AlarmTimeEntity } from './alarmTime.entity';
 
 @Entity('User')
 export class UserEntity {
@@ -24,14 +25,18 @@ export class UserEntity {
   @Column({ nullable: false, length: 30 })
   lon: string;
 
-  @ApiProperty({ description: '알람 시간 (0 ~ 24)' })
-  @IsNumber()
-  @Column({ default: null, type: 'tinyint' })
-  alarmTime: number;
-
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => AlarmTimeEntity, (alarmTime) => alarmTime.users, { cascade: true })
+  @JoinTable({
+    name: 'user_alarmTime',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'alarmTimeId', referencedColumnName: 'id' },
+  })
+  @ApiProperty({})
+  alarmTimes: AlarmTimeEntity[];
 }
