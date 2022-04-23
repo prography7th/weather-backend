@@ -2,13 +2,8 @@ import { AlarmTimeEntity } from '../../users/entity/alarmTime.entity';
 import { Connection } from 'typeorm';
 import { Factory, Seeder } from 'typeorm-seeding';
 
-interface AlarmTime {
-  id: number;
-  time: number;
-}
-
-export default class CreateAlarmTimes implements Seeder {
-  private createAlarmTimes(): AlarmTime[] {
+export default class SeedAlarmTimes implements Seeder {
+  private createAlarmTimes(): AlarmTimeEntity[] {
     const alarmTimes = [];
     for (let time = 0; time < 24; time++) {
       alarmTimes.push({ id: time, time });
