@@ -41,7 +41,7 @@ export class UsersController {
     name: 'time',
     required: true,
     type: Number,
-    description: '추가할 알람 시간',
+    description: '추가할 알람 시간 (0 - 23)',
   })
   @ApiOperation({ summary: '알람 시간 추가' })
   @Post(':userId/alarmTimes')
@@ -53,7 +53,7 @@ export class UsersController {
     name: 'time',
     required: true,
     type: Number,
-    description: '삭제할 알람 시간',
+    description: '삭제할 알람 시간 (0 - 23)',
   })
   @ApiOperation({ summary: '알람 시간 삭제' })
   @Delete(':userId/alarmTimes')

@@ -15,15 +15,10 @@ export class UserEntity {
   @Column({ nullable: false, length: 255 })
   token: string;
 
-  @ApiProperty({ description: '유저 위치 위도' })
+  @ApiProperty({ description: '유저 현재 위치 행정구역코드' })
   @IsString()
   @Column({ nullable: false, length: 30 })
-  lat: string;
-
-  @ApiProperty({ description: '유저 위치 경도' })
-  @IsString()
-  @Column({ nullable: false, length: 30 })
-  lon: string;
+  areaCode: string;
 
   @CreateDateColumn()
   createdAt: Date;

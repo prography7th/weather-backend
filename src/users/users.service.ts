@@ -1,3 +1,4 @@
+import { AreaService } from '@app/area/area.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,24 +11,32 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>,
     @InjectRepository(AlarmTimeEntity) private alarmTimeRepository: Repository<AlarmTimeEntity>,
+    private areaService: AreaService,
   ) {}
 
   async getUser(id: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne(id, {
-      select: ['id', 'token', 'lat', 'lon'],
+      select: ['id', 'token', 'areaCode'],
       relations: ['alarmTimes'],
     });
     if (!user) throw new NotFoundException('존재하지 않는 유저');
 
-    return user;
+    const area = await this.areaService.getAreaFromCode(user.areaCode);
+
+    return {
+      id: user.id,
+      token: user.token,
+      alarmTimes: user.alarmTimes,
+      areaName: area.stage2 ? `${area.stage1} ${area.stage2}` : area.stage1,
+    };
   }
 
   async saveUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
+    const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
     const user = new UserEntity();
     user.id = id;
     user.token = token;
-    user.lat = lat;
-    user.lon = lon;
+    user.areaCode = areaCode;
 
     const newUser = await this.usersRepository.save(user);
 
@@ -35,8 +44,10 @@ export class UsersService {
   }
 
   async updateUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
+    const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
     const user = await this.getUser(id);
-    await this.usersRepository.update(user.id, { token, lat, lon });
+
+    await this.usersRepository.update(user.id, { token, areaCode });
 
     return this.getUser(user.id);
   }

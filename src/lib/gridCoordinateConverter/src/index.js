@@ -46,11 +46,12 @@ export function dfs_xy_conv(code, v1, v2) {
     rs['y'] = v2;
     let xn = v1 - XO;
     let yn = ro - v2 + YO;
-    ra = Math.sqrt(xn * xn + yn * yn);
+    let ra = Math.sqrt(xn * xn + yn * yn);
     if (sn < 0.0) -ra;
     let alat = Math.pow((re * sf) / ra, 1.0 / sn);
     alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
 
+    let theta;
     if (Math.abs(xn) <= 0.0) {
       theta = 0.0;
     } else {

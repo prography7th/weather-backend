@@ -3,10 +3,10 @@ import { UserEntity } from './user.entity';
 
 @Entity('AlarmTime')
 export class AlarmTimeEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'tinyint' })
   id: number;
 
-  @Column()
+  @Column({ type: 'tinyint' })
   time: number;
 
   @ManyToMany(() => UserEntity, (user) => user.alarmTimes)
