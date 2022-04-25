@@ -3,7 +3,7 @@ import { Connection } from 'typeorm';
 import { Factory, Seeder } from 'typeorm-seeding';
 import * as xlsx from 'xlsx';
 
-export default class SeedArea implements Seeder {
+export default class AreaSeeder implements Seeder {
   private createAreas(): AreaEntity[] {
     return xlsx.utils.sheet_to_json(xlsx.readFile('area.csv').Sheets.Sheet1);
   }
