@@ -21,26 +21,20 @@ export class AreaEntity {
   y: number;
 
   @Column()
-  lonPerHour: number;
+  lonD: number;
 
   @Column()
-  lonPerMinute: number;
+  lonM: number;
 
   @Column()
-  lonPerSecond: number;
+  lonS: number;
 
   @Column()
-  latPerHour: number;
+  latD: number;
 
   @Column()
-  latPerMinute: number;
+  latM: number;
 
   @Column()
-  latPerSecond: number;
-
-  @Column()
-  lonPerSecond100: number;
-
-  @Column()
-  latPerSecond100: number;
+  latS: number;
 }
