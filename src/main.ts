@@ -59,9 +59,9 @@ class Application {
       origin: this.corsOriginList,
       credentials: true,
     });
+    this.setUpGlobalPrefix();
     this.setUpOpenApiAuth();
     this.setUpOpenAPImidleware();
-    this.setUpGlobalPrefix();
     this.server.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
