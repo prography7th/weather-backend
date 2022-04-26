@@ -26,9 +26,25 @@ export class Day {
 }
 
 export class MiddleInfoDto {
-  @ApiProperty({ description: '요청 요일' })
+  @ApiProperty({ description: '요청 요일', example: '화요일' })
   requestDay: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: [
+      {
+        day: '화요일',
+        tmpMin: 17,
+        tmpMax: 26,
+        am: {
+          precipitation: 60,
+          weather: '맑음',
+        },
+        pm: {
+          precipitation: 0,
+          weather: '맑음',
+        },
+      },
+    ],
+  })
   informations: Day[];
 }
