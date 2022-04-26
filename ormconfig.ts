@@ -14,7 +14,7 @@ const ormconfig: TypeOrmModuleOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   entities: [UserEntity, AlarmTimeEntity, AreaEntity],
-  synchronize: JSON.parse(process.env.DB_SYNC),
+  synchronize: JSON.parse(process.env.DB_SYNC || 'false'),
   //   migrations: [__dirname + '/src/migrations/*.ts'],
   //   cli: { migrationsDir: '/src/migrations' },
 };
