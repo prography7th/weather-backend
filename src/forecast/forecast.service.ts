@@ -58,8 +58,8 @@ export class ForecastService {
       const [year, month, day] = now[0].split('/').reverse();
       const TODAY = `${year}${month}${day}`;
       const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
-      const baseDate = 1 < hour && hour < 24 ? TODAY : YESTERDAY;
-      const baseTime = 1 < hour && hour < 24 ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
+      const baseDate = 0 < hour ? TODAY : YESTERDAY;
+      const baseTime = 0 < hour ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
 
       // 데이터 요청
       const VERY_SHORT_END_POINT = this.configService.get('VERY_SHORT_END_POINT');
@@ -160,7 +160,6 @@ export class ForecastService {
 
       return weather;
     } catch (err) {
-      if (err.statusCode == 400) throw new BadRequestException();
       throw new Error(err);
     }
   }
