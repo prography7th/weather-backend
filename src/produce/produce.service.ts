@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class ProduceService implements OnModuleInit {
   async onModuleInit() {
-    this.sendEvent();
+    //this.sendEvent();
   }
 
   constructor(
