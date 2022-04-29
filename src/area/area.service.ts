@@ -29,4 +29,14 @@ export class AreaService {
   async getAreaFromCode(code: string): Promise<AreaEntity> {
     return this.areaRepository.findOne({ where: { code } });
   }
+
+  getDdFromDms(latDMS: string, lonDMS: string): Number[] {
+    const [latD, latM, latS] = latDMS.split(' ');
+    const [lonD, lonM, lonS] = lonDMS.split(' ');
+
+    const lat = [Number(latD), Number(latM) / 60, Number(latS) / 3600].reduce((s, n) => s + n);
+    const lon = [Number(lonD), Number(lonM) / 60, Number(lonS) / 3600].reduce((s, n) => s + n);
+
+    return [lat, lon];
+  }
 }
