@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class HalfOfDay {
+export class HalfOfMDay {
   @ApiProperty({ description: '강수확률' })
   precipitation: number;
 
@@ -8,7 +8,7 @@ export class HalfOfDay {
   weather: string;
 }
 
-export class Day {
+export class MDay {
   @ApiProperty()
   day: string;
 
@@ -19,10 +19,10 @@ export class Day {
   tmpMax: number;
 
   @ApiProperty()
-  am: HalfOfDay;
+  am: HalfOfMDay;
 
   @ApiProperty()
-  pm: HalfOfDay;
+  pm: HalfOfMDay;
 }
 
 export class MiddleInfoDto {
@@ -46,5 +46,5 @@ export class MiddleInfoDto {
       },
     ],
   })
-  informations: Day[];
+  informations: MDay[];
 }

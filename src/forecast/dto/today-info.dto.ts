@@ -1,25 +1,17 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class MaxPop {
   @ApiProperty({ description: '최대 강수확률', example: '60' })
   value: string;
 
-  @ApiProperty({ description: '최대 강수확률에 해당하는 시간대의 첫번째 값', example: '0300' })
+  @ApiProperty({
+    description: '최대 강수확률에 해당하는 시간대의 첫번째 값 (강수확률 모두 0일 경우: all)',
+    example: '0300',
+  })
   time: string;
 }
 
-export class Report {
-  @ApiProperty({ description: '최대 기온', example: 26 })
-  maxTmp: number;
-
-  @ApiProperty({ description: '최소 기온', example: 17 })
-  minTmp: number;
-
-  @ApiProperty({ description: '최대 강수확률' })
-  maxPop: MaxPop;
-}
-
-export class Finedust {
+export class FineDust {
   @ApiProperty({ description: '행정구역 이름', example: '서울' })
   sidoName: string;
 
@@ -28,6 +20,20 @@ export class Finedust {
 
   @ApiProperty({ description: '초미세먼지', example: '보통' })
   pm25: string;
+}
+
+export class Report {
+  @ApiProperty({ description: '최대 기온', example: 26, required: false })
+  maxTmp?: number;
+
+  @ApiProperty({ description: '최소 기온', example: 17, required: false })
+  minTmp?: number;
+
+  @ApiProperty({ description: '최대 강수확률', required: false })
+  maxPop?: MaxPop;
+
+  @ApiProperty({ description: '미세먼지', required: false })
+  fineDust?: FineDust;
 }
 
 export class WeatherMetadata {
@@ -45,14 +51,14 @@ export class WeatherMetadata {
 
   @ApiProperty({ description: '강수확률' })
   pop: string;
+
+  @ApiProperty({ description: '강수형태(PTY)코드: (TODAY) 없음(0), 비(1), 비/눈(2), 눈(3), 소나기(4)' })
+  pty: string;
 }
 
-export class Today {
+export class TDay {
   @ApiProperty()
   report: Report;
-
-  @ApiProperty({ description: '미세먼지' })
-  fineDust: Finedust;
 
   @ApiProperty({
     description: '시간대별 날씨 정보',
@@ -60,24 +66,23 @@ export class Today {
       {
         date: '20220426',
         time: '0300',
-        sky: '4',
-        tmp: '18',
-        pop: '60',
+        sky: '1',
+        tmp: '9',
+        pop: '0',
+        pty: '0',
       },
     ],
   })
   timeline: WeatherMetadata[];
 }
 
-export class AfterToday extends PickType(Today, ['report', 'timeline']) {}
-
 export class TodayInfoDto {
   @ApiProperty()
-  today: Today;
+  today: TDay;
 
   @ApiProperty()
-  tomorrow: AfterToday;
+  tomorrow: TDay;
 
   @ApiProperty()
-  tmp: AfterToday;
+  afterTomorrow: TDay;
 }
