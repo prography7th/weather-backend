@@ -1,11 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ForecastService } from '@forecast/forecast.service';
 import { MiddleForecastService } from '@forecast/middle-forecast.service';
 import { NowInfoDto } from './dto/now-info.dto';
-import { TodayInfoDto } from './dto/today-info.dto';
+import { TodayInfoDto, WeatherMetadata } from './dto/today-info.dto';
 import { ApiResponseWithDto } from '@app/common/decorators/api-response-with-dto.decorator';
-import { MiddleInfoDto } from './dto/middle-info.dto';
+import { MDay, MiddleInfoDto } from './dto/middle-info.dto';
 
 const latMetadata = {
   name: 'lat',
@@ -37,6 +37,7 @@ export class ForecastController {
     return this.forecastService.getNowInfo(lat, lon);
   }
 
+  @ApiResponse({ description: 'Today > timeline 아이템 스키마', type: WeatherMetadata })
   @ApiResponseWithDto(TodayInfoDto)
   @ApiOperation({ summary: '오늘 날씨 정보 조회' })
   @ApiQuery(latMetadata)
@@ -55,6 +56,7 @@ export class ForecastController {
     return this.forecastService.getTodayInfo(lat, lon, baseDate, baseTime);
   }
 
+  @ApiResponse({ description: 'Middle > informations 아이템 스키마', type: MDay })
   @ApiResponseWithDto(MiddleInfoDto)
   @ApiOperation({ summary: '주간 날씨 정보 조회' })
   @ApiQuery(latMetadata)

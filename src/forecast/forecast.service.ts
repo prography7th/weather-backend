@@ -3,7 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
 
-import { Day, Report, ShortInfo, Time, Weather } from '@forecast/forecast.interface';
+import { Day, Report, ShortInfo, TodayInfo, WeatherMetadata } from '@forecast/forecast.interface';
 import { FinedustService } from '@finedust/finedust.service';
 import { IFinedustSummary } from '@finedust/finedust.interface';
 import { dfs_xy_conv } from '@lib/gridCoordinateConverter/src';
@@ -54,7 +54,7 @@ export class ForecastService {
     return responseData.response.body.items.item;
   }
 
-  async getNowInfo(lat: string, lon: string): Promise<any> {
+  async getNowInfo(lat: string, lon: string): Promise<WeatherMetadata> {
     if (!lat || !lon) throw new BadRequestException();
 
     // 기상청 XY좌표로 변환
@@ -77,16 +77,17 @@ export class ForecastService {
     const groupedByTime = Object.values(this.groupBy(data, 'fcstTime'));
 
     // 데이터 포맷팅
-    const weather = groupedByTime[0].reduce(
+    const result = groupedByTime[0].reduce(
       (acc, cur) => {
         if (cur['category'] === 'SKY') acc['sky'] = cur['fcstValue'];
         if (cur['category'] === 'T1H') acc['tmp'] = cur['fcstValue'];
+        if (cur['category'] === 'PTY') acc['pty'] = cur['fcstValue'];
         return acc;
       },
       { time: groupedByTime[0][0]['fcstTime'] },
     );
 
-    return weather;
+    return result;
   }
 
   private async getFineDustInfo(x: string, y: string): Promise<IFinedustSummary> {
@@ -98,15 +99,16 @@ export class ForecastService {
     return result;
   }
 
-  async getTodayInfo(lat: string, lon: string, baseDate: string, baseTime: string): Promise<Weather> {
+  async getTodayInfo(lat: string, lon: string, baseDate: string, baseTime: string): Promise<TodayInfo> {
     function toWeatherData(day): Day {
       const times = Object.keys(day).sort();
-      const timeline: Time[] = times.map((time) => ({
+      const timeline: WeatherMetadata[] = times.map((time) => ({
         date: day[time][0].fcstDate,
         time: day[time][0].fcstTime,
         sky: day[time].find((item) => item.category === 'SKY').fcstValue,
         tmp: day[time].find((item) => item.category === 'TMP').fcstValue,
         pop: day[time].find((item) => item.category === 'POP').fcstValue,
+        pty: day[time].find((item) => item.category === 'PTY').fcstValue,
       }));
 
       const maxTmpObj = times
@@ -139,13 +141,13 @@ export class ForecastService {
 
     // 데이터 포맷팅
     const weatherData = groupedByTimeAfterDate.slice(0, 3).map((day) => toWeatherData(day));
-    const weather = weatherData.reduce((acc, cur, idx) => {
+    const result = weatherData.reduce((acc, cur, idx) => {
       acc[['today', 'tomorrow', 'afterTomorrow'][idx]] = cur;
       return acc;
     }, {});
 
     // 최대 강수확률 정보 추가
-    const todayTimeline = weather['today'].timeline;
+    const todayTimeline = result['today'].timeline;
     let maxPop = 0;
     let time = 'all';
 
@@ -157,10 +159,10 @@ export class ForecastService {
       }
     }
 
-    weather['today'].report.maxPop = { value: maxPop, time };
+    result['today'].report.maxPop = { value: maxPop, time };
     // 미세먼지 정보 추가
-    weather['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
+    result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
-    return weather;
+    return result;
   }
 }
