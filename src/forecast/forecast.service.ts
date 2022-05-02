@@ -48,7 +48,7 @@ export class ForecastService {
       header: { resultCode, resultMsg },
     } = responseData.response;
     if (resultCode !== '00') {
-      throw new Error(`[단기예보 조회서비스] ${resultMsg}`);
+      throw new BadRequestException(`[단기예보 조회서비스] ${resultMsg}`);
     }
 
     return responseData.response.body.items.item;
