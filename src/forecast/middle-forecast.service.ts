@@ -80,7 +80,8 @@ export class MiddleForecastService {
     const baseDate = 0 < hour && hour < 6 ? YESTERDAY : TODAY;
     const baseTime = 0 < hour && hour < 6 ? '2300' : '0200';
 
-    let weatherInformation = await this.forecastService.getTodayInfo(String(y), String(x), baseDate, baseTime);
+    // let weatherInformation = await this.forecastService.getTodayInfo(String(y), String(x), baseDate, baseTime);
+    let weatherInformation = await this.forecastService.getTodayInfo(String(y), String(x));
     let todayAmPop: any = [];
     let todayPmPop: any = [];
     let tomorrowAmPop: any = [];

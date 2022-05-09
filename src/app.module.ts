@@ -13,9 +13,9 @@ import ormconfig from '../ormconfig';
       isGlobal: true,
       validationSchema,
     }),
+    TypeOrmModule.forRoot(ormconfig),
     FinedustModule,
     ForecastModule,
-    TypeOrmModule.forRoot(ormconfig),
     UsersModule,
   ],
 })
