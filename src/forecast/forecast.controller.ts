@@ -44,16 +44,7 @@ export class ForecastController {
   @ApiQuery(lonMetadata)
   @Get('today')
   getTodayInfo(@Query('lat') lat: string, @Query('lon') lon: string) {
-    // baseDate, baseTime 구하기
-    const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
-    const hour = parseInt(now[1].split(':')[0]);
-    const [year, month, day] = now[0].split('/').reverse();
-    const TODAY = `${year}${month}${day}`;
-    const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
-    const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
-    const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
-
-    return this.forecastService.getTodayInfo(lat, lon, baseDate, baseTime);
+    return this.forecastService.getTodayInfo(lat, lon);
   }
 
   @ApiResponse({ description: 'Middle > informations 아이템 스키마', type: MDay })
