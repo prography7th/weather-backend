@@ -69,4 +69,6 @@ jobs:
           -e M_FORECAST_SERVICE_KEY=${{ secrets.M_FORECAST_SERVICE_KEY }} \
           -e M_TMP_END_POINT=${{ secrets.M_TMP_END_POINT }} \
           -e M_RAND_END_POINT=${{ secrets.M_RAND_END_POINT }} \
+          -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
+          -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
           ${{ env.DOCKER_IMAGE }}:latest
