@@ -19,7 +19,7 @@ import { AreaModule } from '@app/area/area.module';
         store: redisStore,
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT),
-        ttl: parseInt(process.env.REDIS_TTL),
+        ttl: 100000,
       }),
     }),
   ],
