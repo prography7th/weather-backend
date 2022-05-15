@@ -5,6 +5,7 @@ import { validationSchema } from '@config/validationSchema';
 import { FinedustModule } from '@finedust/finedust.module';
 import { ForecastModule } from '@forecast/forecast.module';
 import { UsersModule } from './users/users.module';
+import { AlarmModule } from './alarm/alarm.module';
 import ormconfig from '../ormconfig';
 
 @Module({
@@ -17,6 +18,7 @@ import ormconfig from '../ormconfig';
     FinedustModule,
     ForecastModule,
     UsersModule,
+    AlarmModule,
   ],
 })
 export class AppModule {}
