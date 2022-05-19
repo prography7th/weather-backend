@@ -34,9 +34,9 @@ export class UsersController {
   @ApiOperation({ summary: '유저 정보 수정' })
   @Put(':id')
   updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    const { token, lat, lon } = body;
+    const { token, isActive, lat, lon } = body;
 
-    return this.usersService.updateUser(id, token, lat, lon);
+    return this.usersService.updateUser(id, token, isActive, lat, lon);
   }
 
   @ApiNoContentResponse()

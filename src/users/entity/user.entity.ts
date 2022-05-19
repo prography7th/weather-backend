@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsString, IsUUID } from 'class-validator';
 import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { AlarmTimeEntity } from './alarmTime.entity';
 
@@ -19,6 +19,11 @@ export class UserEntity {
   @IsString()
   @Column({ nullable: false, length: 30 })
   areaCode: string;
+
+  @ApiProperty({ description: '알람 활성화 상태' })
+  @IsBoolean()
+  @Column({ default: false })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
