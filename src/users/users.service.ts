@@ -16,7 +16,7 @@ export class UsersService {
 
   async getUser(id: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne(id, {
-      select: ['id', 'token', 'areaCode'],
+      select: ['id', 'token', 'areaCode', 'isActive'],
       relations: ['alarmTimes'],
     });
     if (!user) throw new NotFoundException('존재하지 않는 유저');
@@ -26,8 +26,9 @@ export class UsersService {
     return {
       id: user.id,
       token: user.token,
-      alarmTimes: user.alarmTimes,
       areaName: area.stage2 ? `${area.stage1} ${area.stage2}` : area.stage1,
+      isActive: user.isActive,
+      alarmTimes: user.alarmTimes,
     };
   }
 
@@ -43,11 +44,11 @@ export class UsersService {
     return this.getUser(newUser.id);
   }
 
-  async updateUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
+  async updateUser(id: string, token: string, isActive: boolean, lat: string, lon: string): Promise<UserResponseDto> {
     const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
     const user = await this.getUser(id);
 
-    await this.usersRepository.update(user.id, { token, areaCode });
+    await this.usersRepository.update(user.id, { token, isActive, areaCode });
 
     return this.getUser(user.id);
   }
