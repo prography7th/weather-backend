@@ -5,11 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { SqsService } from '@ssut/nestjs-sqs';
 import { Repository } from 'typeorm';
 @Injectable()
-export class ProduceService implements OnModuleInit {
-  async onModuleInit() {
-    //this.sendEvent();
-  }
-
+export class ProduceService {
   constructor(
     private readonly sqsService: SqsService,
     @InjectRepository(AreaEntity) private readonly areaRepository: Repository<AreaEntity>,
@@ -20,7 +16,7 @@ export class ProduceService implements OnModuleInit {
     const areas = await this.getAreaInformations();
     areas.forEach((area) => {
       const id = area.code;
-      this.sqsService.send('area', {
+      this.sqsService.send('weather', {
         id,
         deduplicationId: id,
         groupId: 'cachingGroup',
