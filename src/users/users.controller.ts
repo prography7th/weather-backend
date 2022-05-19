@@ -12,7 +12,7 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @ApiResponseWithDto(UserResponseDto)
-  @ApiParam({ name: 'id', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
+  @ApiParam({ name: 'id' })
   @ApiOperation({ summary: '유저 정보 조회' })
   @Get(':id')
   getUser(@Param('id') id: string) {
@@ -30,7 +30,7 @@ export class UsersController {
   }
 
   @ApiResponseWithDto(UserResponseDto)
-  @ApiParam({ name: 'id', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
+  @ApiParam({ name: 'id' })
   @ApiOperation({ summary: '유저 정보 수정' })
   @Put(':id')
   updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
@@ -40,7 +40,7 @@ export class UsersController {
   }
 
   @ApiNoContentResponse()
-  @ApiParam({ name: 'id', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
+  @ApiParam({ name: 'id' })
   @ApiOperation({ summary: '유저 정보 삭제' })
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
@@ -55,7 +55,7 @@ export class UsersController {
     description: '추가할 알람 시간 (0 - 23)',
     example: '14',
   })
-  @ApiParam({ name: 'userId', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
+  @ApiParam({ name: 'userId' })
   @ApiOperation({ summary: '알람 시간 추가' })
   @Post(':userId/alarmTimes')
   addUserAlarmTime(@Param('userId') userId: string, @Query('time', ParseIntPipe) time: number) {
@@ -70,7 +70,7 @@ export class UsersController {
     description: '삭제할 알람 시간 (0 - 23)',
     example: '14',
   })
-  @ApiParam({ name: 'userId', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
+  @ApiParam({ name: 'userId' })
   @ApiOperation({ summary: '알람 시간 삭제' })
   @Delete(':userId/alarmTimes')
   removeUserAlarmTime(@Param('userId') userId: string, @Query('time', ParseIntPipe) time: number) {
