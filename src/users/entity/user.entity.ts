@@ -20,7 +20,7 @@ export class UserEntity {
   @Column({ nullable: false, length: 30 })
   areaCode: string;
 
-  @ApiProperty({ description: '알람 활성화 상태' })
+  @ApiProperty({ description: '알람 활성화 상태', default: false })
   @IsBoolean()
   @Column({ default: false })
   isActive: boolean;
