@@ -6,6 +6,7 @@ import { FinedustModule } from '@finedust/finedust.module';
 import { ForecastModule } from '@forecast/forecast.module';
 import { UsersModule } from './users/users.module';
 import ormconfig from '../ormconfig';
+import { ProduceModule } from './produce/produce.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import ormconfig from '../ormconfig';
     FinedustModule,
     ForecastModule,
     UsersModule,
+    ProduceModule,
   ],
 })
 export class AppModule {}
