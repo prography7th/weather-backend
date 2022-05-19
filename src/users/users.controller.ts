@@ -11,6 +11,11 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  @Get('test')
+  getUserToSendAlarm() {
+    return this.usersService.getUserToSendAlarm();
+  }
+
   @ApiResponseWithDto(UserResponseDto)
   @ApiParam({ name: 'id', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
   @ApiOperation({ summary: '유저 정보 조회' })

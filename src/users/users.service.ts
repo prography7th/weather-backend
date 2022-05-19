@@ -14,6 +14,12 @@ export class UsersService {
     private areaService: AreaService,
   ) {}
 
+  async getUserToSendAlarm() {
+    const hour = parseInt(new Date().toLocaleString('en-GB', { hour12: false }).split(', ')[1].split(':')[0]);
+
+    return (await this.alarmTimeRepository.findOne(hour, { relations: ['users'] })).users;
+  }
+
   async getUser(id: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne(id, {
       select: ['id', 'token', 'areaCode'],
