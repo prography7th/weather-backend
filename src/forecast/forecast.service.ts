@@ -110,6 +110,8 @@ export class ForecastService {
     const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
 
     const result: TodayInfo = await this.cacheManager.get(`${areaCode}:${baseDate}`);
+    console.log(`${areaCode}:${baseDate}`);
+    console.log(result);
     result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
     return result;
