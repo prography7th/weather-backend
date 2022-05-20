@@ -14,6 +14,21 @@ export class UsersService {
     private areaService: AreaService,
   ) {}
 
+  async getUsersToSendAlarm() {
+    const hour = parseInt(new Date().toLocaleString('en-GB', { hour12: false }).split(', ')[1].split(':')[0]);
+
+    const users = await this.alarmTimeRepository.find({ relations: ['user'], where: { time: hour } });
+    const tokens = users
+      .map((item) => {
+        if (item.isActive) {
+          return { areaCode: item.user.areaCode, deviceToken: item.user.token };
+        }
+      })
+      .filter((item) => item != null);
+
+    return tokens;
+  }
+
   async getUser(id: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne(id, {
       select: ['id', 'token', 'areaCode'],

@@ -1,28 +1,14 @@
 import { FinedustModule } from '@app/finedust/finedust.module';
 import { HttpModule } from '@nestjs/axios';
-import { CacheModule, Module } from '@nestjs/common';
-import * as redisStore from 'cache-manager-redis-store';
 import { ForecastController } from '@forecast/forecast.controller';
 import { ForecastService } from '@forecast/forecast.service';
 import { MiddleForecastService } from '@forecast/middle-forecast.service';
 import { ConfigModule } from '@nestjs/config';
 import { AreaModule } from '@app/area/area.module';
+import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [
-    HttpModule,
-    FinedustModule,
-    ConfigModule,
-    AreaModule,
-    CacheModule.registerAsync({
-      useFactory: async () => ({
-        store: redisStore,
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT),
-        ttl: 100000,
-      }),
-    }),
-  ],
+  imports: [HttpModule, FinedustModule, ConfigModule, AreaModule],
   controllers: [ForecastController],
   providers: [ForecastService, MiddleForecastService],
 })
