@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsString } from 'class-validator';
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { IsString } from 'class-validator';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { AlarmTimeEntity } from './alarmTime.entity';
 
 @Entity('User')
@@ -20,23 +20,13 @@ export class UserEntity {
   @Column({ nullable: false, length: 30 })
   areaCode: string;
 
-  @ApiProperty({ description: '알람 활성화 상태', default: false })
-  @IsBoolean()
-  @Column({ default: false })
-  isActive: boolean;
-
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => AlarmTimeEntity, (alarmTime) => alarmTime.users, { cascade: true })
-  @JoinTable({
-    name: 'user_alarmTime',
-    joinColumn: { name: 'userId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'alarmTimeId', referencedColumnName: 'id' },
-  })
-  @ApiProperty({})
+  @ApiProperty()
+  @OneToMany((type) => AlarmTimeEntity, (alarmTime) => alarmTime.user, { cascade: true })
   alarmTimes: AlarmTimeEntity[];
 }
