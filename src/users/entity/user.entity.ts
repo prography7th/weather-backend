@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID } from 'class-validator';
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import { IsString } from 'class-validator';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { AlarmTimeEntity } from './alarmTime.entity';
 
 @Entity('User')
 export class UserEntity {
-  @ApiProperty({ description: 'UUID', example: 'a4f35968-dc52-48d6-8068-16a6c600bcce' })
-  @IsUUID()
+  @ApiProperty({ description: 'UUID' })
+  @IsString()
   @PrimaryColumn({ length: 40 })
   id: string;
 
@@ -26,12 +26,7 @@ export class UserEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => AlarmTimeEntity, (alarmTime) => alarmTime.users, { cascade: true })
-  @JoinTable({
-    name: 'user_alarmTime',
-    joinColumn: { name: 'userId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'alarmTimeId', referencedColumnName: 'id' },
-  })
-  @ApiProperty({})
+  @ApiProperty({ example: [{ id: 1, time: 14, isActive: true }] })
+  @OneToMany((type) => AlarmTimeEntity, (alarmTime) => alarmTime.user, { cascade: true })
   alarmTimes: AlarmTimeEntity[];
 }
