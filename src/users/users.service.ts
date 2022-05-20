@@ -14,9 +14,24 @@ export class UsersService {
     private areaService: AreaService,
   ) {}
 
+  async getUsersToSendAlarm() {
+    const hour = parseInt(new Date().toLocaleString('en-GB', { hour12: false }).split(', ')[1].split(':')[0]);
+
+    const users = await this.alarmTimeRepository.find({ relations: ['user'], where: { time: hour } });
+    const tokens = users
+      .map((item) => {
+        if (item.isActive) {
+          return { areaCode: item.user.areaCode, deviceToken: item.user.token };
+        }
+      })
+      .filter((item) => item != null);
+
+    return tokens;
+  }
+
   async getUser(id: string): Promise<UserResponseDto> {
     const user = await this.usersRepository.findOne(id, {
-      select: ['id', 'token', 'areaCode', 'isActive'],
+      select: ['id', 'token', 'areaCode'],
       relations: ['alarmTimes'],
     });
     if (!user) throw new NotFoundException('존재하지 않는 유저');
@@ -27,7 +42,6 @@ export class UsersService {
       id: user.id,
       token: user.token,
       areaName: area.stage2 ? `${area.stage1} ${area.stage2}` : area.stage1,
-      isActive: user.isActive,
       alarmTimes: user.alarmTimes,
     };
   }
@@ -44,11 +58,11 @@ export class UsersService {
     return this.getUser(newUser.id);
   }
 
-  async updateUser(id: string, token: string, isActive: boolean, lat: string, lon: string): Promise<UserResponseDto> {
+  async updateUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
     const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
     const user = await this.getUser(id);
 
-    await this.usersRepository.update(user.id, { token, isActive, areaCode });
+    await this.usersRepository.update(user.id, { token, areaCode });
 
     return this.getUser(user.id);
   }
@@ -57,28 +71,34 @@ export class UsersService {
     await this.usersRepository.delete(id);
   }
 
-  private async getAlarmTime(time): Promise<AlarmTimeEntity> {
-    const alarmTime = await this.alarmTimeRepository.findOne({ where: { time } });
-    if (!alarmTime) throw new NotFoundException('존재하지 않는 알람 시간');
-
-    return alarmTime;
-  }
-
-  async addUserAlarmTime(userId: string, time: number): Promise<UserResponseDto> {
+  async addAlarmTime(userId: string, time: number): Promise<UserResponseDto> {
     const user = await this.getUser(userId);
-    const alarmTime = await this.getAlarmTime(time);
 
-    user.alarmTimes.push(alarmTime);
-    await this.usersRepository.save(user);
+    const alarmTime = new AlarmTimeEntity();
+    alarmTime.user = await this.usersRepository.findOne(userId);
+    alarmTime.time = time;
+    await this.alarmTimeRepository.save(alarmTime);
 
     return this.getUser(user.id);
   }
 
-  async removeUserAlarmTime(userId: string, time: number): Promise<UserResponseDto> {
+  async switchAlarmTime(userId: string, alarmTimeId: number): Promise<UserResponseDto> {
     const user = await this.getUser(userId);
 
-    user.alarmTimes = user.alarmTimes.filter((alarmTime) => alarmTime.time !== time);
-    await this.usersRepository.save(user);
+    const alarmTime = await this.alarmTimeRepository.findOne(alarmTimeId);
+    if (!alarmTime) {
+      throw new NotFoundException('존재하지 않는 알람 시간');
+    }
+
+    await this.alarmTimeRepository.update(alarmTimeId, { isActive: !alarmTime.isActive });
+
+    return this.getUser(user.id);
+  }
+
+  async removeAlarmTime(userId: string, alarmTimeId: number): Promise<UserResponseDto> {
+    const user = await this.getUser(userId);
+
+    await this.alarmTimeRepository.delete(alarmTimeId);
 
     return this.getUser(user.id);
   }

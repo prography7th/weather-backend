@@ -1,17 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, ManyToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { UserEntity } from './user.entity';
 
 @Entity('AlarmTime')
 export class AlarmTimeEntity {
-  @ApiProperty()
-  @PrimaryColumn({ type: 'tinyint' })
+  @ApiProperty({ example: 1 })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: '알람 시간' })
+  @ApiProperty({ description: '알람 시간 (0 ~ 23)', example: 14 })
   @Column({ type: 'tinyint' })
   time: number;
 
-  @ManyToMany(() => UserEntity, (user) => user.alarmTimes)
-  users: UserEntity[];
+  @ApiProperty()
+  @Column({ default: true })
+  isActive: boolean;
+
+  @ManyToOne((type) => UserEntity, (user) => user.alarmTimes, { nullable: false, onDelete: 'CASCADE' })
+  user: UserEntity;
 }
