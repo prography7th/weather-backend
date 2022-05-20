@@ -1,6 +1,6 @@
 import { ApiResponseWithDto } from '@app/common/decorators/api-response-with-dto.decorator';
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { ApiBody, ApiNoContentResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { ApiBody, ApiNoContentResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SaveUserDto } from './dto/save-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -34,9 +34,9 @@ export class UsersController {
   @ApiOperation({ summary: '유저 정보 수정' })
   @Put(':id')
   updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    const { token, isActive, lat, lon } = body;
+    const { token, lat, lon } = body;
 
-    return this.usersService.updateUser(id, token, isActive, lat, lon);
+    return this.usersService.updateUser(id, token, lat, lon);
   }
 
   @ApiNoContentResponse()
@@ -52,28 +52,27 @@ export class UsersController {
     name: 'time',
     required: true,
     type: Number,
-    description: '추가할 알람 시간 (0 - 23)',
+    description: '추가할 알람 시간 (0 ~ 23)',
     example: '14',
   })
   @ApiParam({ name: 'userId' })
   @ApiOperation({ summary: '알람 시간 추가' })
   @Post(':userId/alarmTimes')
-  addUserAlarmTime(@Param('userId') userId: string, @Query('time', ParseIntPipe) time: number) {
-    return this.usersService.addUserAlarmTime(userId, time);
+  addAlarmTime(@Param('userId') userId: string, @Query('time') time: number) {
+    return this.usersService.addAlarmTime(userId, time);
+  }
+
+  @ApiOperation({ summary: '알람 시간 On/Off' })
+  @Put(':userId/alarmTimes/:alarmTimeId')
+  switchAlarmTime(@Param('userId') userId: string, @Param('alarmTimeId') alarmTimeId: number) {
+    return this.usersService.switchAlarmTime(userId, alarmTimeId);
   }
 
   @ApiResponseWithDto(UserResponseDto)
-  @ApiQuery({
-    name: 'time',
-    required: true,
-    type: Number,
-    description: '삭제할 알람 시간 (0 - 23)',
-    example: '14',
-  })
   @ApiParam({ name: 'userId' })
   @ApiOperation({ summary: '알람 시간 삭제' })
-  @Delete(':userId/alarmTimes')
-  removeUserAlarmTime(@Param('userId') userId: string, @Query('time', ParseIntPipe) time: number) {
-    return this.usersService.removeUserAlarmTime(userId, time);
+  @Delete(':userId/alarmTimes/:alarmTimeId')
+  removeAlarmTime(@Param('userId') userId: string, @Param('alarmTimeId') alarmTimeId: number) {
+    return this.usersService.removeAlarmTime(userId, alarmTimeId);
   }
 }

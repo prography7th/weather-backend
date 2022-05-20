@@ -26,7 +26,7 @@ export class UserEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ example: [{ id: 1, time: 14, isActive: true }] })
   @OneToMany((type) => AlarmTimeEntity, (alarmTime) => alarmTime.user, { cascade: true })
   alarmTimes: AlarmTimeEntity[];
 }
