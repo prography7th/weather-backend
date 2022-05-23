@@ -13,4 +13,4 @@ RUN npm install
 ADD . /app
 RUN npm run build
 
-CMD ["node", "--max-old-space-size=1024", "./dist/src/main.js"]
+CMD ["node", "--max-old-space-size=800", "./dist/src/main.js"]
