@@ -71,4 +71,5 @@ jobs:
           -e M_RAND_END_POINT=${{ secrets.M_RAND_END_POINT }} \
           -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
           -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
+          -e FIREBASE_CREDENTIAL_JSON=${{ secrets.FIREBASE_CREDENTIAL_JSON }} \
           ${{ env.DOCKER_IMAGE }}:latest
