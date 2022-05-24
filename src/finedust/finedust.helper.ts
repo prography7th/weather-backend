@@ -1,5 +1,5 @@
 import { CACHE_MANAGER, Inject, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Cache } from 'cache-manager';
 import { IFinedust } from '@finedust/finedust.interface';
 
@@ -15,7 +15,7 @@ export class FinedustHelper implements OnModuleInit, OnModuleDestroy {
     this.finedustGenerator = require('../lib/finedust/src/index.js');
   }
 
-  @Cron('0 0 * * *', { name: 'setFineDustInformation' })
+  @Cron(CronExpression.EVERY_HOUR, { name: 'setFineDustInformation' })
   handleCron() {
     this.setFinedustInformation();
   }

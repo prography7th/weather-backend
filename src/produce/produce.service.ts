@@ -1,6 +1,7 @@
 import { AreaService } from '@app/area/area.service';
 import { AreaEntity } from '@app/area/entity/area.entity';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SqsService } from '@ssut/nestjs-sqs';
 import { Repository } from 'typeorm';
@@ -12,22 +13,30 @@ export class ProduceService {
     private readonly areaService: AreaService,
   ) {}
 
-  public async sendEvent() {
+  @Cron(CronExpression.EVERY_DAY_AT_11PM, { name: 'sendEvent' })
+  handleCron() {
+    this.sendEvent();
+  }
+
+  private async sendEvent() {
+    Logger.log('Redis 캐싱 이벤트 생성 중입니다.', 'REDIS-SQS');
     const areas = await this.getAreaInformations();
-    areas.forEach((area) => {
+    areas.forEach(async (area) => {
       const id = area.code;
-      this.sqsService.send('weather', {
-        id,
-        deduplicationId: id,
-        groupId: 'cachingGroup',
-        delaySeconds: 0,
-        body: {
-          test: process.env.NODE_ENV === 'development' ? true : false,
-          data: {
-            ...area,
+      try {
+        await this.sqsService.send('area', {
+          id,
+          deduplicationId: id,
+          groupId: 'cachingGroup',
+          delaySeconds: 0,
+          body: {
+            test: process.env.NODE_ENV === 'development' ? true : false,
+            data: {
+              ...area,
+            },
           },
-        },
-      });
+        });
+      } catch (err) {}
     });
   }
 
