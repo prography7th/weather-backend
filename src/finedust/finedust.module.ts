@@ -6,7 +6,7 @@ import { FinedustHelper } from '@finedust/finedust.helper';
 @Module({
   imports: [
     CacheModule.register({
-      ttl: 0,
+      ttl: 60 * 60 + 600,
     }),
     ScheduleModule.forRoot(),
   ],

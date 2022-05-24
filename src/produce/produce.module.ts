@@ -5,6 +5,7 @@ import { SqsModule } from '@ssut/nestjs-sqs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AreaEntity } from '@app/area/entity/area.entity';
 import { AreaModule } from '@app/area/area.module';
+import { ScheduleModule } from '@nestjs/schedule';
 const SQS_ENDPOINT = process.env.SQS_ENDPOINT || 'http://localhost:9324';
 
 const sqs = new AWS.SQS({
@@ -23,13 +24,14 @@ const sqs = new AWS.SQS({
           producers: [
             {
               sqs,
-              queueUrl: `${SQS_ENDPOINT}/area.fifo`,
+              queueUrl: `${SQS_ENDPOINT}/weather.fifo`,
               name: 'area',
             },
           ],
         };
       },
     }),
+    ScheduleModule.forRoot(),
   ],
   providers: [ProduceService],
 })
