@@ -72,4 +72,7 @@ jobs:
           -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
           -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
           -e FIREBASE_CREDENTIAL_JSON=${{ secrets.FIREBASE_CREDENTIAL_JSON }} \
+          -e AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} \
+          -e AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }} \
+          -e SQS_ENDPOINT=${{ secrets.SQS_ENDPOINT }} \
           ${{ env.DOCKER_IMAGE }}:latest
