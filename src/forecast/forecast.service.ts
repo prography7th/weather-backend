@@ -3,7 +3,7 @@ import { BadRequestException, CACHE_MANAGER, Inject, Injectable } from '@nestjs/
 import { ConfigService } from '@nestjs/config';
 import { Cache } from 'cache-manager';
 
-import { ShortInfo, TodayInfo, WeatherMetadata } from '@forecast/forecast.interface';
+import { Day, ShortInfo, TodayInfo, WeatherMetadata, Report } from '@forecast/forecast.interface';
 import { FinedustService } from '@finedust/finedust.service';
 import { IFinedustSummary } from '@finedust/finedust.interface';
 import { dfs_xy_conv } from '@lib/gridCoordinateConverter/src';
@@ -113,6 +113,81 @@ export class ForecastService {
     console.log(`${areaCode}:${baseDate}`);
     console.log(result);
     result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
+
+    return result;
+  }
+
+  /**
+   * Cache Miss Handler
+   * @author    leesky, hanna
+   * @param    {string} lat
+   * @param    {string} lon
+   * @param    {string} baseDate
+   * @param    {string} baseTime
+   * @return   {Promise<TodayInfo>}
+   */
+
+  private async cacheMissHandler(lat: string, lon: string, baseDate: string, baseTime: string): Promise<TodayInfo> {
+    function toWeatherData(day): Day {
+      const times = Object.keys(day).sort();
+      const timeline: WeatherMetadata[] = times.map((time) => ({
+        date: day[time][0].fcstDate,
+        time: day[time][0].fcstTime,
+        sky: day[time].find((item) => item.category === 'SKY').fcstValue,
+        tmp: day[time].find((item) => item.category === 'TMP').fcstValue,
+        pop: day[time].find((item) => item.category === 'POP').fcstValue,
+        pty: day[time].find((item) => item.category === 'PTY').fcstValue,
+      }));
+
+      const maxTmpObj = times
+        .map((time) => day[time].find((item) => item.category === 'TMX'))
+        .filter((item) => !!item)[0];
+      const minTmpObj = times
+        .map((time) => day[time].find((item) => item.category === 'TMN'))
+        .filter((item) => !!item)[0];
+      const report: Report = {
+        maxTmp: maxTmpObj ? +maxTmpObj.fcstValue : null,
+        minTmp: minTmpObj ? +minTmpObj.fcstValue : null,
+      };
+
+      return { report, timeline };
+    }
+
+    if (!lat || !lon) throw new BadRequestException();
+
+    // 기상청 XY좌표로 변환
+    const { x, y } = dfs_xy_conv('toXY', lat, lon);
+
+    // 날씨 데이터 요청
+    const SHORT_END_POINT = this.configService.get('SHORT_END_POINT');
+    const data = await this.requestShort(SHORT_END_POINT, baseDate, baseTime, x, y);
+
+    // 날짜 & 시간별 그룹화
+    const groupedByTimeAfterDate = Object.values(this.groupBy(data, 'fcstDate')).map((day) =>
+      this.groupBy(day, 'fcstTime'),
+    );
+
+    // 데이터 포맷팅
+    const weatherData = groupedByTimeAfterDate.slice(0, 3).map((day) => toWeatherData(day));
+    const result = weatherData.reduce((acc, cur, idx) => {
+      acc[['today', 'tomorrow', 'afterTomorrow'][idx]] = cur;
+      return acc;
+    }, {});
+
+    // 최대 강수확률 정보 추가
+    const todayTimeline = result['today'].timeline;
+    let maxPop = 0;
+    let time = 'all';
+
+    for (let i = 0; i < todayTimeline.length; i++) {
+      const curPop = todayTimeline[i].pop;
+      if (curPop > maxPop) {
+        maxPop = curPop;
+        time = todayTimeline[i].time;
+      }
+    }
+
+    result['today'].report.maxPop = { value: maxPop, time };
 
     return result;
   }
