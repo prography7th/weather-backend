@@ -1,5 +1,5 @@
 import { AreaService } from '@app/area/area.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -47,11 +47,15 @@ export class UsersService {
   }
 
   async saveUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
-    const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
+    const area = await this.areaService.getArea(lat, lon);
+    if (area.length === 0) {
+      throw new BadRequestException('올바르지 않은 위도/경도');
+    }
+
     const user = new UserEntity();
     user.id = id;
     user.token = token;
-    user.areaCode = areaCode;
+    user.areaCode = area[0].code;
 
     const newUser = await this.usersRepository.save(user);
 
@@ -59,10 +63,14 @@ export class UsersService {
   }
 
   async updateUser(id: string, token: string, lat: string, lon: string): Promise<UserResponseDto> {
-    const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
+    const area = await this.areaService.getArea(lat, lon);
+    if (area.length === 0) {
+      throw new BadRequestException('올바르지 않은 위도/경도');
+    }
+
     const user = await this.getUser(id);
 
-    await this.usersRepository.update(user.id, { token, areaCode });
+    await this.usersRepository.update(user.id, { token, areaCode: area[0].code });
 
     return this.getUser(user.id);
   }
