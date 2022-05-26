@@ -104,14 +104,24 @@ export class ForecastService {
 
   async getTodayInfo(lat: string, lon: string): Promise<TodayInfo> {
     const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
+    const hour = parseInt(now[1].split(':')[0]);
     const [year, month, day] = now[0].split('/').reverse();
-
-    const baseDate = `${year}${month}${day}`;
+    const TODAY = `${year}${month}${day}`;
+    const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+    const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
+    const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
     const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
 
-    const result: TodayInfo = await this.cacheManager.get(`${areaCode}:${baseDate}`);
+    let result: TodayInfo = await this.cacheManager.get(`${areaCode}:${baseDate}`);
     console.log(`${areaCode}:${baseDate}`);
     console.log(result);
+
+    if (result == null) {
+      result = await this.cacheMissHandler(lat, lon, baseDate, baseTime);
+      this.cacheManager.set(`${areaCode}:${baseDate}`, result, {
+        ttl: 60 * 60 * 24 * 2,
+      });
+    }
     result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
     return result;
@@ -120,13 +130,12 @@ export class ForecastService {
   /**
    * Cache Miss Handler
    * @author    leesky, hanna
-   * @param    {string} lat
-   * @param    {string} lon
-   * @param    {string} baseDate
-   * @param    {string} baseTime
-   * @return   {Promise<TodayInfo>}
+   * @param    string lat
+   * @param    string lon
+   * @param    string baseDate
+   * @param    string baseTime
+   * @return   promise TodayInfo
    */
-
   private async cacheMissHandler(lat: string, lon: string, baseDate: string, baseTime: string): Promise<TodayInfo> {
     function toWeatherData(day): Day {
       const times = Object.keys(day).sort();
