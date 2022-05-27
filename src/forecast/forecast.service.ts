@@ -103,6 +103,8 @@ export class ForecastService {
   }
 
   async getTodayInfo(lat: string, lon: string): Promise<TodayInfo> {
+    if (!lat || !lon) throw new BadRequestException("좌표를 입력해 주세요.");
+
     const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
     const hour = parseInt(now[1].split(':')[0]);
     const [year, month, day] = now[0].split('/').reverse();
@@ -162,7 +164,6 @@ export class ForecastService {
       return { report, timeline };
     }
 
-    if (!lat || !lon) throw new BadRequestException();
 
     // 기상청 XY좌표로 변환
     const { x, y } = dfs_xy_conv('toXY', lat, lon);
