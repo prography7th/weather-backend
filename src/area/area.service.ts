@@ -1,4 +1,3 @@
-import { dfs_xy_conv } from '@app/lib/gridCoordinateConverter/src';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,10 +19,9 @@ export class AreaService {
   async getArea(lat: string, lon: string): Promise<AreaEntity[]> {
     const latDMS = this.convertLatOrLonToDMS(lat);
     const lonDMS = this.convertLatOrLonToDMS(lon);
-    const { x, y } = dfs_xy_conv('toXY', lat, lon);
 
     return await this.areaRepository.find({
-      where: { x, y, latD: latDMS.D, latM: latDMS.M, lonD: lonDMS.D, lonM: lonDMS.M },
+      where: { latD: latDMS.D, latM: latDMS.M, lonD: lonDMS.D, lonM: lonDMS.M },
     });
   }
 
