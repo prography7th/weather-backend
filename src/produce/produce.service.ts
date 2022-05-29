@@ -42,14 +42,10 @@ export class ProduceService {
 
   private async getAreaInformations() {
     const areas = (await this.areaRepository.find()).map((area: AreaEntity) => {
-      const [lat, lon] = this.areaService.getDdFromDms(
-        `${area.latD} ${area.latM} ${area.latS}`,
-        `${area.lonD} ${area.lonM} ${area.lonS}`,
-      );
       return {
         code: area.code,
-        lat,
-        lon,
+        x: area.x,
+        y: area.y,
       };
     });
     return areas;
