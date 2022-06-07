@@ -47,6 +47,8 @@ export class ForecastService {
         .toPromise()
     ).data;
 
+    console.log(JSON.stringify(responseData))
+
     const {
       header: { resultCode, resultMsg },
     } = responseData.response;
