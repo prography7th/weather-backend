@@ -44,6 +44,7 @@ export class ForecastController {
   @ApiQuery(lonMetadata)
   @Get('today')
   getTodayInfo(@Query('lat') lat: string, @Query('lon') lon: string) {
+    console.log(lat, lon);
     return this.forecastService.getTodayInfo(lat, lon);
   }
 
