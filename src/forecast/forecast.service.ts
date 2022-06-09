@@ -114,15 +114,16 @@ export class ForecastService {
     const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
     const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
     const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
-    const areaCode = (await this.areaService.getArea(lat, lon))[0].code;
+    const { x, y } = (await this.areaService.getArea(lat, lon))[0];
+    const grid = `${String(x).padStart(3, '0')}${String(y).padStart(3, '0')}`;
 
-    let result: TodayInfo = await this.cacheManager.get(`${areaCode}:${baseDate}`);
-    console.log(`${areaCode}:${baseDate}`);
+    let result: TodayInfo = await this.cacheManager.get(`${grid}:${baseDate}`);
+    console.log(`${grid}:${baseDate}`);
     console.log(result);
 
     if (result == null) {
       result = await this.cacheMissHandler(lat, lon, baseDate, baseTime);
-      this.cacheManager.set(`${areaCode}:${baseDate}`, result, {
+      this.cacheManager.set(`${grid}:${baseDate}`, result, {
         ttl: 60 * 60 * 24 * 2,
       });
     }
