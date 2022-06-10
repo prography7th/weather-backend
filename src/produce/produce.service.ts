@@ -11,6 +11,7 @@ export class ProduceService {
     private readonly sqsService: SqsService,
     @InjectRepository(AreaEntity) private readonly areaRepository: Repository<AreaEntity>,
     private readonly areaService: AreaService,
+    private cachedGrid: Set<string>,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM, { name: 'sendEvent' })
@@ -22,22 +23,27 @@ export class ProduceService {
     Logger.log('Redis 캐싱 이벤트 생성 중입니다.', 'REDIS-SQS');
     const areas = await this.getAreaInformations();
     areas.forEach(async (area) => {
-      const id = area.code;
-      try {
-        await this.sqsService.send('area', {
-          id,
-          deduplicationId: id,
-          groupId: 'cachingGroup',
-          delaySeconds: 0,
-          body: {
-            test: process.env.NODE_ENV === 'development' ? true : false,
-            data: {
-              ...area,
+      const { x, y } = area;
+      const grid = `${String(x).padStart(3, '0')}${String(y).padStart(3, '0')}`;
+      if (!this.cachedGrid.has(grid)) {
+        this.cachedGrid.add(grid);
+        try {
+          await this.sqsService.send('area', {
+            id: grid,
+            deduplicationId: grid,
+            groupId: 'cachingGroup',
+            delaySeconds: 0,
+            body: {
+              test: process.env.NODE_ENV === 'development' ? true : false,
+              data: {
+                ...area,
+              },
             },
-          },
-        });
-      } catch (err) {}
+          });
+        } catch (err) {}
+      }
     });
+    this.cachedGrid.clear();
   }
 
   private async getAreaInformations() {
