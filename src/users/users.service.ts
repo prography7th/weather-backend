@@ -14,19 +14,21 @@ export class UsersService {
     private areaService: AreaService,
   ) {}
 
-  async getUsersToSendAlarm() {
+  async getUsersToSendAlarm(): Promise<UserForFCM[]> {
     const hour = parseInt(new Date().toLocaleString('en-GB', { hour12: false }).split(', ')[1].split(':')[0]);
 
     const users = await this.alarmTimeRepository.find({ relations: ['user'], where: { time: hour } });
-    const tokens = users
-      .map((item) => {
-        if (item.isActive) {
-          return { areaCode: item.user.areaCode, deviceToken: item.user.token };
-        }
-      })
-      .filter((item) => item != null);
 
-    return tokens;
+    const result = Promise.all(
+      users.map(async (item) => {
+        if (item.isActive) {
+          const { x, y } = await this.areaService.getAreaFromCode(item.user.areaCode);
+          return { grid: `${String(x).padStart(3, '0')}${String(y).padStart(3, '0')}`, deviceToken: item.user.token };
+        }
+      }),
+    ).then((data) => data.filter((item) => item != null));
+
+    return result;
   }
 
   async getUser(id: string): Promise<UserResponseDto> {
