@@ -35,7 +35,7 @@ export class BatchService {
       const [year, month, day] = now[0].split('/').reverse();
 
       const baseDate = `${year}${month}${day}`;
-      const content: Content[] = await this.cacheManager.get(`${user.areaCode}:${baseDate}:content`);
+      const content: Content[] = await this.cacheManager.get(`${user.grid}:${baseDate}:content`);
       if (!content || content.length === 0) {
         return;
       }
