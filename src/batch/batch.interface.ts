@@ -1,5 +1,5 @@
 interface UserForFCM {
-  areaCode: string;
+  grid: string;
   deviceToken: string;
 }
 
