@@ -47,9 +47,6 @@ export class ForecastService {
         .toPromise()
     ).data;
 
-    console.log(JSON.stringify(responseData));
-
-
     const {
       header: { resultCode, resultMsg },
     } = responseData.response;
@@ -119,6 +116,7 @@ export class ForecastService {
     const grid = `${String(x).padStart(3, '0')}${String(y).padStart(3, '0')}`;
 
     let result: TodayInfo = await this.cacheManager.get(`${grid}:${baseDate}`);
+
     console.log(`${grid}:${baseDate}`);
     console.log(result);
 

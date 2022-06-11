@@ -7,12 +7,14 @@ import { SqsService } from '@ssut/nestjs-sqs';
 import { Repository } from 'typeorm';
 @Injectable()
 export class ProduceService {
+  private cachedGrid: Set<string>;
   constructor(
     private readonly sqsService: SqsService,
     @InjectRepository(AreaEntity) private readonly areaRepository: Repository<AreaEntity>,
     private readonly areaService: AreaService,
-    private cachedGrid: Set<string>,
-  ) {}
+  ) {
+    this.cachedGrid = new Set<string>();
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_11PM, { name: 'sendEvent' })
   handleCron() {
