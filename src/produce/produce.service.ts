@@ -8,20 +8,23 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class ProduceService {
   private cachedGrid: Set<string>;
+  private produceTimes: number[] = [2, 5, 8, 11, 14, 17, 20, 23];
   constructor(
     private readonly sqsService: SqsService,
     @InjectRepository(AreaEntity) private readonly areaRepository: Repository<AreaEntity>,
-    private readonly areaService: AreaService,
   ) {
     this.cachedGrid = new Set<string>();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_11PM, { name: 'sendEvent' })
+  @Cron('13 23 * * *', { name: 'sendEvent' })
   handleCron() {
     this.sendEvent();
   }
 
-  private async sendEvent() {
+  private async sendEvent(): Promise<void> {
+    const [baseDate, baseTime] = this.getRequestTime();
+    if (baseDate.length == 0) return;
+
     Logger.log('Redis 캐싱 이벤트 생성 중입니다.', 'REDIS-SQS');
     const areas = await this.getAreaInformations();
     areas.forEach(async (area) => {
@@ -39,6 +42,8 @@ export class ProduceService {
               test: process.env.NODE_ENV === 'development' ? true : false,
               data: {
                 ...area,
+                baseDate,
+                baseTime,
               },
             },
           });
@@ -57,5 +62,21 @@ export class ProduceService {
       };
     });
     return areas;
+  }
+
+  private getRequestTime(): string[] {
+    const [year, month, day] = new Date()
+      .toLocaleString('en-GB', { hour12: false })
+      .split(', ')[0]
+      .split('/')
+      .reverse();
+    const baseDate = year + month + day;
+    const baseTime = new Date().getHours();
+
+    if (this.produceTimes.includes(baseTime)) {
+      return [baseDate, baseTime + '00'];
+    } else {
+      return ['', ''];
+    }
   }
 }
