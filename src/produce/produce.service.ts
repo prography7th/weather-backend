@@ -16,7 +16,7 @@ export class ProduceService {
     this.cachedGrid = new Set<string>();
   }
 
-  @Cron('13 23 * * *', { name: 'sendEvent' })
+  @Cron('13 2,5,8,11,14,17,20,23 * * *', { name: 'sendEvent' })
   handleCron() {
     this.sendEvent();
   }
