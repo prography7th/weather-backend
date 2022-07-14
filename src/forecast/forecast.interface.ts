@@ -23,10 +23,13 @@ export interface Report {
 
 export interface WeatherMetadata {
   date?: string;
+  pop?: string;
+  diff?: number;
+  maxTmp?: number;
+  minTmp?: number;
   time: string;
   sky: string;
   tmp: string;
-  pop?: string;
   pty: string;
 }
 
