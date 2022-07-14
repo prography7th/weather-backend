@@ -1,8 +1,7 @@
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, CACHE_MANAGER, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cache } from 'cache-manager';
-
 import { Day, ShortInfo, TodayInfo, WeatherMetadata, Report } from '@forecast/forecast.interface';
 import { FinedustService } from '@finedust/finedust.service';
 import { IFinedustSummary } from '@finedust/finedust.interface';
@@ -61,16 +60,17 @@ export class ForecastService {
     if (!lat || !lon) throw new BadRequestException();
 
     // 기상청 XY좌표로 변환
-    const { x, y } = dfs_xy_conv('toXY', lat, lon);
+    const { x, y } = (await this.areaService.getArea(lat, lon))[0];
 
     // baseDate, baseTime 구하기
     const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
     const hour = parseInt(now[1].split(':')[0]);
     const [year, month, day] = now[0].split('/').reverse();
     const TODAY = `${year}${month}${day}`;
-    const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+    const YESTERDAY = this.getYesterDay();
     const baseDate = 0 < hour ? TODAY : YESTERDAY;
     const baseTime = 0 < hour ? `${hour - 1 < 10 ? `0${hour - 1}30` : `${hour - 1}30`}` : '2330';
+    const grid = `${String(x).padStart(3, '0')}${String(y).padStart(3, '0')}`;
 
     // 데이터 요청
     const VERY_SHORT_END_POINT = this.configService.get('VERY_SHORT_END_POINT');
@@ -89,6 +89,9 @@ export class ForecastService {
       },
       { time: groupedByTime[0][0]['fcstTime'] },
     );
+
+    //어제와 날씨 차이 확인
+    result.diff = await this.getDiff(result, `${grid}:base`);
 
     return result;
   }
@@ -109,7 +112,7 @@ export class ForecastService {
     const hour = parseInt(now[1].split(':')[0]);
     const [year, month, day] = now[0].split('/').reverse();
     const TODAY = `${year}${month}${day}`;
-    const YESTERDAY = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+    const YESTERDAY = this.getYesterDay();
     const baseDate = 2 < hour && hour < 24 ? TODAY : YESTERDAY;
     const baseTime = 2 < hour && hour < 24 ? '0200' : '2300';
     const { x, y } = (await this.areaService.getArea(lat, lon))[0];
@@ -117,13 +120,13 @@ export class ForecastService {
 
     let result: TodayInfo = await this.cacheManager.get(`${grid}:${baseDate}`);
 
-    console.log(`${grid}:${baseDate}`);
-    console.log(result);
+    Logger.log(`${grid}:${baseDate}`);
+    Logger.log(result);
 
     if (result == null) {
       result = await this.cacheMissHandler(lat, lon, baseDate, baseTime);
       this.cacheManager.set(`${grid}:${baseDate}`, result, {
-        ttl: 60 * 60 * 24 * 2,
+        ttl: 60 * 60 * 4,
       });
     }
     result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
@@ -131,14 +134,37 @@ export class ForecastService {
     return result;
   }
 
+  private async getDiff(now: WeatherMetadata, gridKey: string): Promise<number> {
+    const { time, tmp } = now;
+    const yesterDay = this.getYesterDay();
+    const baseData = await this.cacheManager.get<TodayInfo>(gridKey);
+    let diff: number;
+    let result: WeatherMetadata;
+
+    for (let key in baseData) {
+      if (baseData[key].timeline[0].date !== yesterDay) continue;
+      result = baseData[key].timeline.filter((v) => v.time === time)[0];
+      diff = Number(tmp) - Number(result.tmp);
+      break;
+    }
+    return diff ? diff : 0;
+  }
+
+  private getYesterDay(): string {
+    const now = new Date().toLocaleString('en-GB', { hour12: false }).split(', ');
+    const [year, month, day] = now[0].split('/').reverse();
+    const yesterDay = `${year}${month}${parseInt(day) - 1 < 10 ? `0${parseInt(day) - 1}` : parseInt(day) - 1}`;
+    return yesterDay;
+  }
+
   /**
-   * Cache Miss Handler
+   * @description Cache Miss Handler
    * @author    leesky, hanna
-   * @param    string lat
-   * @param    string lon
-   * @param    string baseDate
-   * @param    string baseTime
-   * @return   promise TodayInfo
+   * @param    {string} lat
+   * @param    {string} lon
+   * @param    {string} baseDate
+   * @param    {string} baseTime
+   * @return   {Promise<TodayInfo>}
    */
   private async cacheMissHandler(lat: string, lon: string, baseDate: string, baseTime: string): Promise<TodayInfo> {
     function toWeatherData(day): Day {

@@ -15,4 +15,10 @@ export class NowInfoDto {
     example: '0',
   })
   pty: string;
+
+  @ApiProperty({
+    description: '어제와 날씨 비교: 0(같음), 양수(어제보다 높음), 음수(어제보다 낮음)',
+    example: -2,
+  })
+  diff: number;
 }
