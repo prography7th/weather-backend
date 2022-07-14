@@ -4,7 +4,10 @@ export class NowInfoDto {
   @ApiProperty({ example: '0300' })
   time: string;
 
-  @ApiProperty({ description: '하늘상태(SKY)코드: 맑음(1), 구름많음(3), 흐림(4)', example: '1' })
+  @ApiProperty({
+    description: '하늘상태(SKY)코드: 맑음(1), 구름많음(3), 흐림(4)',
+    example: '1',
+  })
   sky: string;
 
   @ApiProperty({ description: '기온', example: '9' })
@@ -15,4 +18,10 @@ export class NowInfoDto {
     example: '0',
   })
   pty: string;
+
+  @ApiProperty({
+    description: '어제와 날씨 비교: 0(같음), 양수(어제보다 높음), 음수(어제보다 낮음)',
+    example: -2,
+  })
+  diff: number;
 }
