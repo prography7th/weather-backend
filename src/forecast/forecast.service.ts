@@ -90,6 +90,11 @@ export class ForecastService {
       { time: groupedByTime[0][0]['fcstTime'] },
     );
 
+    //최대 최소 온도 추가
+    const [maxTmp, minTmp] = await this.getTmpInfo(lat, lon);
+    result.maxTmp = maxTmp;
+    result.minTmp = minTmp;
+
     //어제와 날씨 차이 확인
     result.diff = await this.getDiff(result, `${grid}:base`);
 
@@ -131,6 +136,12 @@ export class ForecastService {
     }
     result['today'].report.fineDust = await this.getFineDustInfo(lon, lat);
 
+    const { maxTmp, minTmp } = result.today.report;
+    if (maxTmp == null || minTmp == null) {
+      const [max, min] = this.getTmpRough(result);
+      result.today.report.maxTmp = max;
+      result.today.report.minTmp = min;
+    }
     return result;
   }
 
@@ -148,6 +159,23 @@ export class ForecastService {
       break;
     }
     return diff ? diff : 0;
+  }
+
+  private async getTmpInfo(lat: string, lon: string): Promise<Array<number>> {
+    const todayInfo = await this.getTodayInfo(lat, lon);
+    const { maxTmp, minTmp } = todayInfo.today.report;
+    if (maxTmp == null || minTmp == null) {
+      return this.getTmpRough(todayInfo);
+    }
+    return [maxTmp, minTmp];
+  }
+
+  private getTmpRough(todayInfo: TodayInfo): number[] {
+    const arr: number[] = [];
+    todayInfo.today.timeline.forEach((v) => {
+      arr.push(Number(v.tmp));
+    });
+    return [Math.max(...arr), Math.min(...arr)];
   }
 
   private getYesterDay(): string {

@@ -24,4 +24,16 @@ export class NowInfoDto {
     example: -2,
   })
   diff: number;
+
+  @ApiProperty({
+    description: '금일 최고온도 : 단위 섭씨',
+    example: 31,
+  })
+  maxTmp: number;
+
+  @ApiProperty({
+    description: '금일 최저온도 : 단위 섭씨',
+    example: 25,
+  })
+  minTmp: number;
 }
